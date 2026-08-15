@@ -23,7 +23,8 @@ data/local/
 outputs/
 
 # Editors and operating systems
-.vscode/
+.vscode/*
+!.vscode/settings.json
 .idea/
 .DS_Store
 Thumbs.db
