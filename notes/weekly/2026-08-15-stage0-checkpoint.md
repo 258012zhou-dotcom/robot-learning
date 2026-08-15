@@ -9,6 +9,9 @@
 - 基础测试命令：`python -m pytest -q`
 - 第一个测试结果：2 passed
 - 已创建一维机器人位置更新函数和正反方向测试
+ 已创建 `environment.yml` 记录最小学习环境
+- 已创建 `scripts/run_tests.sh` 统一运行测试
+- 脚本会检查当前是否处于 `robot_learning` 环境
 
 ## 环境经验
 

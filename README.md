@@ -52,3 +52,12 @@
 ## 学习原则
 
 先理解问题和原理，再编写代码。每次实验都应能够运行、验证并解释结果。
+
+
+## 本地开发
+
+首次创建项目环境：
+
+```bash
+conda env create -f environment.yml
+conda activate robot_learning
