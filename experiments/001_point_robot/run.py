@@ -1,41 +1,77 @@
-"""运行二维点机器人的恒定速度轨迹仿真并保存图片。"""
-
+import json
+import logging
+import random
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from robot_learning.point_robot import simulate_constant_velocity
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+CONFIG_PATH = PROJECT_ROOT / "configs" / "001_point_robot.json"
+OUTPUT_DIR = PROJECT_ROOT / "outputs" / "001_point_robot"
+
+
+def load_config() -> dict:
+    with CONFIG_PATH.open(encoding="utf-8") as file:
+        return json.load(file)
+
+
+def configure_logging() -> logging.Logger:
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s | %(levelname)s | %(message)s",
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler(OUTPUT_DIR / "run.log", encoding="utf-8"),
+        ],
+    )
+    return logging.getLogger(__name__)
+
 
 def main() -> None:
-    """生成实验轨迹并保存到 outputs 目录。"""
+    config = load_config()
+    logger = configure_logging()
+
+    seed = config["seed"]
+    random.seed(seed)
+    np.random.seed(seed)
+
     trajectory = simulate_constant_velocity(
-        initial_position=[0, 0],
-        velocity=[1, 0.5],
-        dt=0.1,
-        steps=100,
+        initial_position=np.array(config["initial_position"]),
+        velocity=np.array(config["velocity"]),
+        dt=config["dt"],
+        steps=config["steps"],
     )
 
-    output_path = Path("outputs/001_point_robot/trajectory.png")
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    final_position = trajectory[-1]
+    results = {
+        "experiment_name": config["experiment_name"],
+        "seed": seed,
+        "trajectory_shape": list(trajectory.shape),
+        "final_position": final_position.tolist(),
+    }
 
-    plt.figure(figsize=(7, 5))
-    plt.plot(trajectory[:, 0], trajectory[:, 1], label="trajectory")
-    plt.scatter(*trajectory[0], label="start", zorder=3)
-    plt.scatter(*trajectory[-1], label="end", zorder=3)
-    plt.xlabel("x position")
-    plt.ylabel("y position")
-    plt.title("2D Point Robot: Constant Velocity")
+    with (OUTPUT_DIR / "results.json").open("w", encoding="utf-8") as file:
+        json.dump(results, file, ensure_ascii=False, indent=2)
+
+    plt.plot(trajectory[:, 0], trajectory[:, 1], marker="o", markevery=10)
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.title("2D Point Robot Trajectory")
+    plt.grid()
     plt.axis("equal")
-    plt.grid(True)
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=150)
+    plt.savefig(OUTPUT_DIR / "trajectory.png")
     plt.close()
 
-    print(f"轨迹形状：{trajectory.shape}")
-    print(f"最终位置：{trajectory[-1]}")
-    print(f"图片已保存到：{output_path}")
+    logger.info("配置文件：%s", CONFIG_PATH)
+    logger.info("随机种子：%s", seed)
+    logger.info("轨迹形状：%s", trajectory.shape)
+    logger.info("最终位置：%s", final_position)
+    logger.info("结果文件：%s", OUTPUT_DIR / "results.json")
 
 
 if __name__ == "__main__":

@@ -76,3 +76,12 @@ outputs/001_point_robot/trajectory.png
 - 第一行是初始位置 `[0, 0]`。
 - 最后一行约为 `[10, 5]`。
 - 图像是一条从 `(0, 0)` 到 `(10, 5)` 的直线，因为两个方向的速度都保持不变。
+
+## 实验配置与复现
+
+运行参数位于 `configs/001_point_robot.json`，包括初始位置、速度、时间步长、步数和随机种子。
+
+运行命令：
+
+```bash
+PYTHONPATH=src python experiments/001_point_robot/run.py
