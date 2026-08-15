@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# ROS 2 / CMake
+build/
+install/
+log/
+CMakeFiles/
+CMakeCache.txt
+
+# Robot data and recordings
+data/local/
+*.bag
+*.db3
+*.mcap
+
+# Generated outputs
+outputs/
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.key
+*.pem
