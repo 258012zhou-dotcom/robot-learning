@@ -1,0 +1,9 @@
+name: robot_learning
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - numpy
+  - matplotlib
+  - pytest
