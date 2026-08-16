@@ -1,8 +1,11 @@
 import numpy as np
 import pytest
 
-from robot_learning.point_robot import next_position, simulate_constant_velocity
-
+from robot_learning.point_robot import (
+    analyze_trajectory,
+    next_position,
+    simulate_constant_velocity,
+)
 
 def test_robot_moves_forward():
     assert next_position(position=0, velocity=2, dt=0.5) == 1
@@ -46,3 +49,32 @@ def test_invalid_simulation_input_is_rejected(
 ):
     with pytest.raises(ValueError):
         simulate_constant_velocity(initial_position, velocity, dt, steps)
+
+
+def test_analyze_straight_trajectory():
+    trajectory = simulate_constant_velocity(
+        initial_position=np.array([0.0, 0.0]),
+        velocity=np.array([1.0, 0.5]),
+        dt=0.1,
+        steps=100,
+    )
+
+    stats = analyze_trajectory(trajectory, dt=0.1)
+
+    np.testing.assert_allclose(stats.displacement, [10.0, 5.0])
+    assert stats.displacement_distance == pytest.approx(np.sqrt(125))
+    assert stats.path_length == pytest.approx(np.sqrt(125))
+    assert stats.average_speed == pytest.approx(np.sqrt(1.25))
+
+
+@pytest.mark.parametrize(
+    ("trajectory", "dt"),
+    [
+        (np.array([0.0, 0.0]), 0.1),
+        (np.array([[0.0, 0.0]]), 0.1),
+        (np.array([[0.0, 0.0], [1.0, 1.0]]), 0.0),
+    ],
+)
+def test_analyze_trajectory_rejects_invalid_inputs(trajectory, dt):
+    with pytest.raises(ValueError):
+        analyze_trajectory(trajectory, dt)

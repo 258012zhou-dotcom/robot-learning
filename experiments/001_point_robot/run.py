@@ -6,8 +6,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from robot_learning.point_robot import simulate_constant_velocity
-
+from robot_learning.point_robot import (
+    analyze_trajectory,
+    simulate_constant_velocity,
+)
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = PROJECT_ROOT / "configs" / "001_point_robot.json"
 OUTPUT_DIR = PROJECT_ROOT / "outputs" / "001_point_robot"
@@ -46,13 +48,17 @@ def main() -> None:
         dt=config["dt"],
         steps=config["steps"],
     )
-
+    stats = analyze_trajectory(trajectory, dt=config["dt"])
     final_position = trajectory[-1]
     results = {
         "experiment_name": config["experiment_name"],
         "seed": seed,
         "trajectory_shape": list(trajectory.shape),
-        "final_position": final_position.tolist(),
+        "final_position": trajectory[-1].tolist(),
+        "displacement": stats.displacement.tolist(),
+        "displacement_distance": stats.displacement_distance,
+        "path_length": stats.path_length,
+        "average_speed": stats.average_speed,
     }
 
     with (OUTPUT_DIR / "results.json").open("w", encoding="utf-8") as file:
@@ -72,6 +78,9 @@ def main() -> None:
     logger.info("轨迹形状：%s", trajectory.shape)
     logger.info("最终位置：%s", final_position)
     logger.info("结果文件：%s", OUTPUT_DIR / "results.json")
+    logger.info("位移距离：%.4f", stats.displacement_distance)
+    logger.info("总路程：%.4f", stats.path_length)
+    logger.info("平均速率：%.4f", stats.average_speed)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
-
+from dataclasses import dataclass
 
 def next_position(position, velocity, dt):
     """计算一维机器人经过 dt 秒后的新位置。"""
@@ -29,3 +29,38 @@ def simulate_constant_velocity(
 
     times = np.arange(steps + 1, dtype=float) * dt
     return position_array + times[:, np.newaxis] * velocity_array
+
+@dataclass(frozen=True)
+class TrajectoryStats:
+    displacement: np.ndarray
+    displacement_distance: float
+    path_length: float
+    average_speed: float
+
+
+def analyze_trajectory(trajectory: np.ndarray, dt: float) -> TrajectoryStats:
+    points = np.asarray(trajectory, dtype=float)
+
+    if points.ndim != 2 or points.shape[1] != 2:
+        raise ValueError("trajectory must have shape (T, 2)")
+    if points.shape[0] < 2:
+        raise ValueError("trajectory must contain at least two points")
+    if dt <= 0:
+        raise ValueError("dt must be positive")
+
+    step_displacements = np.diff(points, axis=0)
+    step_distances = np.linalg.norm(step_displacements, axis=1)
+
+    displacement = points[-1] - points[0]
+    displacement_distance = float(np.linalg.norm(displacement))
+    path_length = float(step_distances.sum())
+
+    duration = (points.shape[0] - 1) * dt
+    average_speed = path_length / duration
+
+    return TrajectoryStats(
+        displacement=displacement,
+        displacement_distance=displacement_distance,
+        path_length=path_length,
+        average_speed=average_speed,
+    )
