@@ -1,0 +1,8 @@
+{
+  "experiment_name": "002_position_filter",
+  "seed": 42,
+  "true_position": [2.0, 1.0],
+  "observation_count": 100,
+  "noise_std": 0.5,
+  "buffer_capacity": 5
+}
