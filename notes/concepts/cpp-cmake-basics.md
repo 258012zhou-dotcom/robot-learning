@@ -1,22 +1,22 @@
 # C++ 与 CMake 基础
 
-## 核心关系
-
-机器人项目常用 Python 进行实验、训练和数据分析，使用 C++ 编写驱动、控制和性能敏感模块。
-
-C++ 工作流程：
+## 快速复习
 
 ```text
-源代码 → 编译 → 链接 → 可执行程序 → 测试
-struct 组合相关数据。
-const 表示对象不应被修改。
-const T& 以只读引用传递对象，避免不必要的复制。
-头文件声明公开接口，源文件提供实现。
-非法参数可以抛出 std::invalid_argument。
-CMake 与测试
-CMake 负责描述构建目标和依赖，实际编译仍由 g++ 完成。
-add_library 创建可复用库。
-add_executable 创建程序或测试。
-target_link_libraries 建立目标之间的依赖。
-CTest 根据测试程序的退出码判断成功或失败。
-VS Code 和编译器主要发现语法与类型问题；逻辑正确性需要测试验证。
+头文件声明接口 + 源文件实现逻辑
+             ↓
+CMake 描述库、程序和测试之间的依赖
+             ↓
+编译、链接 → 可执行程序 / CTest 测试
+```
+
+- `struct Vec2` 把 x、y 两个相关数据组合为二维向量。
+- `const Vec2&` 表示只读引用：不复制对象，也不应修改它。
+- 非法参数用 `std::invalid_argument` 明确报告。
+- CMake 的 `add_library` 建立可复用库，`add_executable` 建立程序或测试，`target_link_libraries` 连接依赖。
+
+## 项目中的用法
+
+`projects/cpp_point_robot/` 将 `next_position` 声明在 `include/point_robot.hpp`，实现在 `src/point_robot.cpp`；主程序和测试都链接 `point_robot_lib`。CTest 依据测试程序的退出码判断成功。
+
+Python 目前适合做实验、数据和可视化；C++ 更适合后续的性能敏感模块、驱动和实时控制接口。编译成功只说明代码能构建，逻辑仍需测试验证。

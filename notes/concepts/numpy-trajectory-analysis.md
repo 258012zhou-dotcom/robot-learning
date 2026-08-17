@@ -8,3 +8,5 @@
 - 平均速率 = 总路程 ÷ 总时间。
 
 浮点数比较使用 `pytest.approx` 或 `np.testing.assert_allclose`。图像应回答问题：实验 001 用轨迹图检查空间路径、用速度图检查匀速假设；保存后 `plt.close(fig)`，输出可由代码和配置重新生成。
+
+`np.asarray(..., dtype=float)` 将列表等输入统一为浮点数组；计算前先确认 shape。NumPy 的向量化会按维度批量计算，通常比 Python `for` 循环更适合轨迹和误差数组。

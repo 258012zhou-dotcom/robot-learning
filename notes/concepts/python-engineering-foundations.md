@@ -13,3 +13,5 @@
 项目证据：实验 001 从 `src` 导入轨迹函数；实验 002 复用 `PositionBuffer`；`PointRobotConfig` 用不可变数据类承接已验证配置。
 
 避免把通用算法复制进每个 `run.py`，也不要把同一个参数散落在多处。直接运行实验时按 README 设置 `PYTHONPATH=src`，否则可能找不到包。
+
+`pyproject.toml` 目前告诉 pytest 从 `src/` 找包、从 `tests/` 找测试；`environment.yml` 则记录需要安装的 Python 版本与依赖。它们分别解决“如何运行项目”和“项目需要什么环境”。

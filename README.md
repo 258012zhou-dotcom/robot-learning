@@ -61,3 +61,12 @@
 ```bash
 conda env create -f environment.yml
 conda activate robot_learning
+```
+
+运行项目测试：
+
+```bash
+./scripts/run_tests.sh
+```
+
+学习笔记索引见 [notes/README.md](notes/README.md)。

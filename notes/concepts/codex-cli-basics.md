@@ -13,4 +13,6 @@
 
 项目约定：主聊天使用 `robot-learning-main`；完整实验可单开聊天；保持 **Workspace (Ask for approval)**；不使用 Danger Full Access 或 `yolo`；修改后先用 `/diff` 检查。
 
+`/diff` 是检查内容，`git diff` 是终端中的 Git 检查；两者都不等于提交。提交前仍应确认测试和 `git status`。
+
 `/fork`、`/compact`、`/apps`、`/plugins` 暂不需要掌握，实际需要时再学。
