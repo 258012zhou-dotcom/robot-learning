@@ -64,14 +64,65 @@ def main() -> None:
     with (OUTPUT_DIR / "results.json").open("w", encoding="utf-8") as file:
         json.dump(results, file, ensure_ascii=False, indent=2)
 
-    plt.plot(trajectory[:, 0], trajectory[:, 1], marker="o", markevery=10)
-    plt.xlabel("x")
-    plt.ylabel("y")
-    plt.title("2D Point Robot Trajectory")
-    plt.grid()
-    plt.axis("equal")
-    plt.savefig(OUTPUT_DIR / "trajectory.png")
-    plt.close()
+    step_velocities = np.diff(trajectory, axis=0) / config["dt"]
+    step_speeds = np.linalg.norm(step_velocities, axis=1)
+    times = np.arange(1, trajectory.shape[0]) * config["dt"]
+
+    fig, (trajectory_ax, speed_ax) = plt.subplots(
+        1,
+        2,
+        figsize=(10, 4),
+    )
+
+    trajectory_ax.plot(
+        trajectory[:, 0],
+        trajectory[:, 1],
+        label="trajectory",
+    )
+    trajectory_ax.scatter(
+        trajectory[0, 0],
+        trajectory[0, 1],
+        color="green",
+        label="start",
+        zorder=3,
+    )
+    trajectory_ax.scatter(
+        trajectory[-1, 0],
+        trajectory[-1, 1],
+        color="red",
+        label="end",
+        zorder=3,
+    )
+    trajectory_ax.set(
+        title="2D Point Robot Trajectory",
+        xlabel="x position",
+        ylabel="y position",
+    )
+    trajectory_ax.axis("equal")
+    trajectory_ax.grid(alpha=0.3)
+    trajectory_ax.legend()
+
+    speed_ax.plot(times, step_speeds, label="step speed")
+    speed_ax.axhline(
+        stats.average_speed,
+        color="orange",
+        linestyle="--",
+        label="average speed",
+    )
+    speed_ax.set(
+        title="Speed over Time",
+        xlabel="time",
+        ylabel="speed",
+    )
+    speed_ax.grid(alpha=0.3)
+    speed_ax.legend()
+
+    fig.tight_layout()
+    fig.savefig(
+        OUTPUT_DIR / "trajectory.png",
+        dpi=150,
+    )
+    plt.close(fig)
 
     logger.info("配置文件：%s", CONFIG_PATH)
     logger.info("随机种子：%s", seed)
