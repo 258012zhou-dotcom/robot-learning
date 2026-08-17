@@ -43,11 +43,12 @@
 
 每个实验目录原则上应包含：
 
-- `README.md`：实验目标、原理、依赖和运行方法
-- `src/`：实验代码
-- `tests/`：验证代码
-- `results/`：值得保留的结果
-- `reflection.md`：实验总结和仍未理解的问题
+- src/robot_learning/：多个实验复用的核心代码。
+- tests/：共享自动化测试。
+- experiments/<编号_名称>/：运行入口、README 和 reflection。
+- configs/：实验配置。
+- outputs/：生成结果，不提交 Git。
+- projects/：C++、并发、网络等相对独立的小项目。
 
 实验编号使用三位数字，例如：
 
