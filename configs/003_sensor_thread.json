@@ -1,0 +1,6 @@
+{
+  "experiment_name": "003_sensor_thread",
+  "sample_count": 10,
+  "interval": 0.01,
+  "queue_capacity": 4
+}

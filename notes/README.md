@@ -18,6 +18,7 @@
 - 类型、异常与输入边界：[可靠软件边界](concepts/python-reliable-boundaries.md)
 - 数据结构、滑动平均与 RMSE：[位置过滤](concepts/data-structures-and-position-filtering.md)
 - C++、CMake 与 CTest：[C++ 与 CMake 基础](concepts/cpp-cmake-basics.md)
+- 进程、线程、异步与安全停止：[Python 并发基础](concepts/python-concurrency-basics.md)
 
 ## 记录与实验
 
