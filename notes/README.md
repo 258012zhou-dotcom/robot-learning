@@ -19,6 +19,7 @@
 - 数据结构、滑动平均与 RMSE：[位置过滤](concepts/data-structures-and-position-filtering.md)
 - C++、CMake 与 CTest：[C++ 与 CMake 基础](concepts/cpp-cmake-basics.md)
 - 进程、线程、异步与安全停止：[Python 并发基础](concepts/python-concurrency-basics.md)
+- Linux 进程、设备权限与 TCP 通信：[Linux 进程、设备与网络基础](concepts/linux-process-device-network.md)
 
 ## 记录与实验
 
