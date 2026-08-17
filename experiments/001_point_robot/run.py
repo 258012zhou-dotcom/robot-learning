@@ -6,6 +6,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from robot_learning.config import PointRobotConfig
 from robot_learning.point_robot import (
     analyze_trajectory,
     simulate_constant_velocity,
@@ -15,9 +16,9 @@ CONFIG_PATH = PROJECT_ROOT / "configs" / "001_point_robot.json"
 OUTPUT_DIR = PROJECT_ROOT / "outputs" / "001_point_robot"
 
 
-def load_config() -> dict:
+def load_config() -> PointRobotConfig:
     with CONFIG_PATH.open(encoding="utf-8") as file:
-        return json.load(file)
+        return PointRobotConfig.from_mapping(json.load(file))
 
 
 def configure_logging() -> logging.Logger:
@@ -38,21 +39,20 @@ def main() -> None:
     config = load_config()
     logger = configure_logging()
 
-    seed = config["seed"]
-    random.seed(seed)
-    np.random.seed(seed)
+    random.seed(config.seed)
+    np.random.seed(config.seed)
 
     trajectory = simulate_constant_velocity(
-        initial_position=np.array(config["initial_position"]),
-        velocity=np.array(config["velocity"]),
-        dt=config["dt"],
-        steps=config["steps"],
+        initial_position=np.array(config.initial_position),
+        velocity=np.array(config.velocity),
+        dt=config.dt,
+        steps=config.steps,
     )
-    stats = analyze_trajectory(trajectory, dt=config["dt"])
+    stats = analyze_trajectory(trajectory, dt=config.dt)
     final_position = trajectory[-1]
     results = {
-        "experiment_name": config["experiment_name"],
-        "seed": seed,
+        "experiment_name": config.experiment_name,
+        "seed": config.seed,
         "trajectory_shape": list(trajectory.shape),
         "final_position": trajectory[-1].tolist(),
         "displacement": stats.displacement.tolist(),
@@ -64,9 +64,9 @@ def main() -> None:
     with (OUTPUT_DIR / "results.json").open("w", encoding="utf-8") as file:
         json.dump(results, file, ensure_ascii=False, indent=2)
 
-    step_velocities = np.diff(trajectory, axis=0) / config["dt"]
+    step_velocities = np.diff(trajectory, axis=0) / config.dt
     step_speeds = np.linalg.norm(step_velocities, axis=1)
-    times = np.arange(1, trajectory.shape[0]) * config["dt"]
+    times = np.arange(1, trajectory.shape[0]) * config.dt
 
     fig, (trajectory_ax, speed_ax) = plt.subplots(
         1,
@@ -125,7 +125,7 @@ def main() -> None:
     plt.close(fig)
 
     logger.info("配置文件：%s", CONFIG_PATH)
-    logger.info("随机种子：%s", seed)
+    logger.info("随机种子：%s", config.seed)
     logger.info("轨迹形状：%s", trajectory.shape)
     logger.info("最终位置：%s", final_position)
     logger.info("结果文件：%s", OUTPUT_DIR / "results.json")
