@@ -1,33 +1,9 @@
-# 阶段 0 检查点 1：开发环境与基础测试
+# 阶段 0 检查点：开发环境与基础测试
 
-## 已验证
+当时已验证：项目位于 `~/AI_Project/robot-learning`；使用 `robot_learning` Conda 环境；Python、NumPy、Matplotlib、pytest 可用；最初的一维位置函数和 2 个测试通过。
 
-- 项目路径：`~/AI_Project/robot-learning`
-- 主学习环境：`conda activate robot_learning`
-- Python：3.10.20
-- 已确认 NumPy、Matplotlib 和 pytest 可用
-- 基础测试命令：`python -m pytest -q`
-- 第一个测试结果：2 passed
-- 已创建一维机器人位置更新函数和正反方向测试
- 已创建 `environment.yml` 记录最小学习环境
-- 已创建 `scripts/run_tests.sh` 统一运行测试
-- 脚本会检查当前是否处于 `robot_learning` 环境
+已建立 `environment.yml` 与 `scripts/run_tests.sh`，后者要求在正确 Conda 环境中运行。
 
-## 环境经验
+故障记录：ROS 2 自动加载可能干扰普通 Python 环境。普通学习使用 `robot_learning`；需要 ROS 2 时在专门终端手动 `source /opt/ros/humble/setup.bash`。
 
-ROS 2 自动加载会向 `PYTHONPATH` 加入 ROS 包路径，可能干扰普通 Conda Python 环境。
-
-当前处理方式：
-
-- 已注释 `~/.bashrc` 中自动加载 ROS 2 的命令；
-- 普通 Python 学习时使用 `robot_learning`；
-- 未来做 ROS 2 时，在专门的新终端手动执行：
-  `source /opt/ros/humble/setup.bash`
-
-## 当前未完成
-
-- Linux 常用文件操作
-- 依赖记录与可复现环境
-- VS Code 开发流程
-- pytest 的更多用法
-- 日志、配置和随机种子管理
+后续补齐：Linux 文件操作、VS Code、pytest、日志、配置、随机种子与可复现流程。
