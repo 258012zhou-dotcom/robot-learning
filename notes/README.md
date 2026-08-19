@@ -16,6 +16,15 @@
 - 数值计算与可视化：[NumPy 轨迹分析](concepts/numpy-trajectory-analysis.md)
 - 数据结构与过滤：[位置过滤](concepts/data-structures-and-position-filtering.md)
 
+## 阶段 1：数学基础
+
+- 线性代数：[机器人学习中的线性代数](concepts/linear-algebra-for-robotics.md)
+- 微积分与优化：[微积分、梯度与数值优化](concepts/calculus-and-numerical-optimization.md)
+- 概率统计：[机器人学习中的概率与统计](concepts/probability-statistics-for-robotics.md)
+- 机器人数学与控制：[坐标变换、刚体运动、动力学与控制](concepts/rigid-motion-dynamics-control.md)
+
+以上内容已完成第一轮系统复习，但尚未全部通过独立练习验证，因此路线图暂不标记为已掌握。
+
 ## 系统、并发与通信
 
 - 并发模型与线程数据流：[Python 并发基础](concepts/python-concurrency-basics.md)

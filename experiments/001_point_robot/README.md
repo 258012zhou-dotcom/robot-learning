@@ -85,3 +85,6 @@ outputs/001_point_robot/trajectory.png
 
 ```bash
 PYTHONPATH=src python experiments/001_point_robot/run.py
+```
+
+运行后应重新生成 `results.json`、`trajectory.png` 和 `run.log`。这些文件位于 `outputs/`，不提交到 Git。
