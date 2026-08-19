@@ -49,6 +49,7 @@ PYTHONPATH=src python experiments/004_learned_dynamics/run.py
 - `results.json`：设备、划分、指标和原始尺度模型参数。
 - `best_model.pt`：最佳模型参数、训练集标准化参数和配置。
 - `loss_curve.png`：训练与验证损失曲线。
+- `test_error_distribution.png`：三种方法的测试集逐样本欧氏误差分布。
 - `run.log`：运行日志。
 
 这些输出由配置和代码重新生成，不提交 Git。

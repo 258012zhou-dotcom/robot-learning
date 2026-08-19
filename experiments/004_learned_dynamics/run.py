@@ -4,6 +4,7 @@ import json
 import logging
 import math
 import random
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +16,11 @@ from torch import Tensor
 from robot_learning.dynamics_model import (
     LearnedDynamicsModel,
     select_torch_device,
+)
+from robot_learning.evaluation import (
+    euclidean_errors,
+    summarize_errors_by_speed,
+    summarize_prediction_errors,
 )
 from robot_learning.motion_dataset import (
     fit_input_standardization,
@@ -149,6 +155,12 @@ def main() -> None:
     learned_test_mse = evaluate_mse(model, test_loader, device)
     learned_test_rmse = math.sqrt(learned_test_mse)
 
+    model.eval()
+    with torch.no_grad():
+        learned_predictions = model(
+            standardized_test_inputs.to(device)
+        ).cpu()
+
     no_motion_predictions = splits.test_inputs[:, :2]
     no_motion_rmse = calculate_rmse(
         no_motion_predictions,
@@ -161,6 +173,23 @@ def main() -> None:
     physics_rmse = calculate_rmse(
         physics_predictions,
         splits.test_targets,
+    )
+    learned_error_summary = summarize_prediction_errors(
+        learned_predictions,
+        splits.test_targets,
+    )
+    no_motion_error_summary = summarize_prediction_errors(
+        no_motion_predictions,
+        splits.test_targets,
+    )
+    physics_error_summary = summarize_prediction_errors(
+        physics_predictions,
+        splits.test_targets,
+    )
+    learned_speed_groups = summarize_errors_by_speed(
+        learned_predictions,
+        splits.test_targets,
+        splits.test_inputs[:, 2:],
     )
 
     raw_weight, raw_bias = recover_raw_linear_parameters(
@@ -202,6 +231,12 @@ def main() -> None:
         "learned_test_rmse": learned_test_rmse,
         "no_motion_test_rmse": no_motion_rmse,
         "physics_test_rmse": physics_rmse,
+        "error_analysis": {
+            "learned_model": asdict(learned_error_summary),
+            "no_motion_baseline": asdict(no_motion_error_summary),
+            "physics_baseline": asdict(physics_error_summary),
+            "learned_model_by_speed": asdict(learned_speed_groups),
+        },
         "raw_scale_weight": raw_weight.tolist(),
         "raw_scale_bias": raw_bias.tolist(),
     }
@@ -238,6 +273,36 @@ def main() -> None:
     figure.savefig(OUTPUT_DIR / "loss_curve.png", dpi=150)
     plt.close(figure)
 
+    error_figure, error_axis = plt.subplots(figsize=(8, 4))
+    error_floor = 1e-12
+    for label, predictions in (
+        ("learned model", learned_predictions),
+        ("no-motion baseline", no_motion_predictions),
+        ("physics baseline", physics_predictions),
+    ):
+        errors = euclidean_errors(
+            predictions,
+            splits.test_targets,
+        ).numpy()
+        error_axis.plot(
+            np.sort(np.maximum(errors, error_floor)),
+            label=label,
+        )
+    error_axis.set(
+        title="Sorted Test Euclidean Errors",
+        xlabel="sorted test sample index",
+        ylabel="Euclidean error",
+        yscale="log",
+    )
+    error_axis.grid(alpha=0.3)
+    error_axis.legend()
+    error_figure.tight_layout()
+    error_figure.savefig(
+        OUTPUT_DIR / "test_error_distribution.png",
+        dpi=150,
+    )
+    plt.close(error_figure)
+
     logger.info("设备：%s (%s)", device, device_name)
     logger.info("数据划分：%s", results["split_sizes"])
     logger.info("最佳轮次：%s", training_result.best_epoch)
@@ -245,6 +310,17 @@ def main() -> None:
     logger.info("学习模型测试 RMSE：%.8f", learned_test_rmse)
     logger.info("不运动基线测试 RMSE：%.8f", no_motion_rmse)
     logger.info("物理公式测试 RMSE：%.8f", physics_rmse)
+    logger.info(
+        "学习模型误差：中位数 %.8f，P95 %.8f，最大值 %.8f",
+        learned_error_summary.median_euclidean_error,
+        learned_error_summary.p95_euclidean_error,
+        learned_error_summary.maximum_euclidean_error,
+    )
+    logger.info(
+        "学习模型分组 RMSE：低速 %.8f，高速 %.8f",
+        learned_speed_groups.low_speed_rmse,
+        learned_speed_groups.high_speed_rmse,
+    )
     logger.info("结果目录：%s", OUTPUT_DIR)
 
 
