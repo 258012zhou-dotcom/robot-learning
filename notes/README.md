@@ -25,6 +25,11 @@
 
 以上内容已完成第一轮系统复习，但尚未全部通过独立练习验证，因此路线图暂不标记为已掌握。
 
+## 阶段 1：机器学习基础
+
+- 数据划分、标准化、Tensor、自动微分、训练循环和评价：[PyTorch 训练、验证与评价流程](concepts/pytorch-training-workflow.md)
+- 综合验证：[实验 004：PyTorch 学习二维运动模型](../experiments/004_learned_dynamics/README.md)
+
 ## 系统、并发与通信
 
 - 并发模型与线程数据流：[Python 并发基础](concepts/python-concurrency-basics.md)
@@ -35,3 +40,4 @@
 
 - [阶段 0 检查点](weekly/2026-08-15-stage0-checkpoint.md) · [阶段 0 完成小结](weekly/2026-08-15-stage0-complete.md)
 - [实验 001：点机器人轨迹](../experiments/001_point_robot/README.md) · [实验 002：位置过滤](../experiments/002_position_filter/README.md) · [实验 003：传感器线程](../experiments/003_sensor_thread/README.md)
+- [实验 004：PyTorch 学习二维运动模型](../experiments/004_learned_dynamics/README.md)

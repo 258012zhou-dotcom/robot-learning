@@ -1,0 +1,12 @@
+{
+  "experiment_name": "004_learned_dynamics",
+  "seed": 42,
+  "sample_count": 2000,
+  "dt": 0.1,
+  "train_fraction": 0.7,
+  "validation_fraction": 0.15,
+  "batch_size": 128,
+  "epochs": 100,
+  "learning_rate": 0.03,
+  "weight_decay": 0.0
+}
