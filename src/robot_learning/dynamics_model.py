@@ -18,6 +18,27 @@ class LearnedDynamicsModel(nn.Module):
         return self.linear(inputs)
 
 
+class DynamicsMLP(nn.Module):
+    """用于小样本过拟合演示的高容量非线性模型。"""
+
+    def __init__(self, hidden_size: int = 128) -> None:
+        super().__init__()
+        if type(hidden_size) is not int or hidden_size <= 0:
+            raise ValueError("hidden_size must be a positive integer")
+        self.network = nn.Sequential(
+            nn.Linear(4, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, 2),
+        )
+
+    def forward(self, inputs: Tensor) -> Tensor:
+        if inputs.ndim != 2 or inputs.shape[1] != 4:
+            raise ValueError("inputs must have shape (N, 4)")
+        return self.network(inputs)
+
+
 def select_torch_device() -> torch.device:
     """优先选择 CUDA，没有可用 GPU 时回退到 CPU。"""
     return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

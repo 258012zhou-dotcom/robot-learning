@@ -53,3 +53,13 @@ PYTHONPATH=src python experiments/004_learned_dynamics/run.py
 - `run.log`：运行日志。
 
 这些输出由配置和代码重新生成，不提交 Git。
+
+## 过拟合与正则化对比
+
+同一实验还包含一个受控演示：使用 64 个带噪声训练样本、512 个干净验证样本和高容量 MLP，对比无权重衰减与使用权重衰减的训练。
+
+```bash
+PYTHONPATH=src python experiments/004_learned_dynamics/overfitting_demo.py
+```
+
+结果保存为 `overfitting_results.json` 和 `overfitting_comparison.png`。该演示用于观察训练损失继续下降但验证损失回升，以及最佳模型恢复和权重衰减的作用。

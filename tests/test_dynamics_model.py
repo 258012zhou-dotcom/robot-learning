@@ -2,6 +2,7 @@ import pytest
 import torch
 
 from robot_learning.dynamics_model import (
+    DynamicsMLP,
     LearnedDynamicsModel,
     select_torch_device,
 )
@@ -54,3 +55,21 @@ def test_model_and_data_run_on_selected_device():
 
     assert next(model.parameters()).device == device
     assert predictions.device == device
+
+
+def test_high_capacity_model_has_expected_shape_and_more_parameters():
+    linear_model = LearnedDynamicsModel()
+    mlp = DynamicsMLP(hidden_size=16)
+
+    predictions = mlp(torch.randn(8, 4))
+
+    assert predictions.shape == (8, 2)
+    assert sum(p.numel() for p in mlp.parameters()) > sum(
+        p.numel() for p in linear_model.parameters()
+    )
+
+
+@pytest.mark.parametrize("hidden_size", [0, -1, 1.5, True])
+def test_high_capacity_model_rejects_invalid_hidden_size(hidden_size):
+    with pytest.raises(ValueError, match="hidden_size"):
+        DynamicsMLP(hidden_size=hidden_size)

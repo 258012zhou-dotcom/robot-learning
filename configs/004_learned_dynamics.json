@@ -8,5 +8,15 @@
   "batch_size": 128,
   "epochs": 100,
   "learning_rate": 0.03,
-  "weight_decay": 0.0
+  "weight_decay": 0.0,
+  "overfitting_demo": {
+    "train_sample_count": 64,
+    "validation_sample_count": 512,
+    "label_noise_std": 0.5,
+    "hidden_size": 128,
+    "batch_size": 64,
+    "epochs": 600,
+    "learning_rate": 0.01,
+    "weight_decay": 0.1
+  }
 }
