@@ -1,0 +1,15 @@
+{
+  "experiment_name": "005_pid_control",
+  "initial_position": 0.0,
+  "initial_velocity": 0.0,
+  "target_position": 5.0,
+  "mass": 1.0,
+  "dt": 0.01,
+  "duration": 8.0,
+  "kp": 5.0,
+  "ki": 0.1,
+  "kd": 4.0,
+  "output_limit": 12.0,
+  "integral_limit": 2.0,
+  "settling_tolerance": 0.05
+}

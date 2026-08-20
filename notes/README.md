@@ -23,7 +23,7 @@
 - 概率统计：[机器人学习中的概率与统计](concepts/probability-statistics-for-robotics.md)
 - 机器人数学与控制：[坐标变换、刚体运动、动力学与控制](concepts/rigid-motion-dynamics-control.md)
 
-以上内容已完成第一轮系统复习，但尚未全部通过独立练习验证，因此路线图暂不标记为已掌握。
+线性代数、微积分、概率统计和数值优化已经在轨迹分析、噪声评价及 PyTorch 训练中得到初步验证。二维坐标变换和刚体运动已通过变换、求逆、组合及齐次矩阵测试；基础动力学与控制仍需后续仿真实验验证。
 
 ## 阶段 1：机器学习基础
 
@@ -41,3 +41,4 @@
 - [阶段 0 检查点](weekly/2026-08-15-stage0-checkpoint.md) · [阶段 0 完成小结](weekly/2026-08-15-stage0-complete.md)
 - [实验 001：点机器人轨迹](../experiments/001_point_robot/README.md) · [实验 002：位置过滤](../experiments/002_position_filter/README.md) · [实验 003：传感器线程](../experiments/003_sensor_thread/README.md)
 - [实验 004：PyTorch 学习二维运动模型](../experiments/004_learned_dynamics/README.md)
+- [实验 005：点质量 PID 闭环控制](../experiments/005_pid_control/README.md)
