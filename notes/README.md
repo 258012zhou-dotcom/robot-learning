@@ -36,9 +36,18 @@
 - TCP 传感器消息：[网络与 TCP 传感器基础](concepts/network-tcp-sensor-basics.md)
 - C++ 构建与测试：[C++ 与 CMake 基础](concepts/cpp-cmake-basics.md)
 
+## 阶段 2：ROS 2 机器人软件
+
+- 工作空间、功能包、环境叠加与 colcon：[ROS 2 工作空间与功能包](concepts/ros2-workspace-and-package.md)
+- 持续扩展项目：[ROS 2 Point Robot Workspace](../projects/ros2_point_robot_ws/README.md)
+
 ## 记录与实验
 
 - [阶段 0 检查点](weekly/2026-08-15-stage0-checkpoint.md) · [阶段 0 完成小结](weekly/2026-08-15-stage0-complete.md)
 - [实验 001：点机器人轨迹](../experiments/001_point_robot/README.md) · [实验 002：位置过滤](../experiments/002_position_filter/README.md) · [实验 003：传感器线程](../experiments/003_sensor_thread/README.md)
 - [实验 004：PyTorch 学习二维运动模型](../experiments/004_learned_dynamics/README.md)
 - [实验 005：点质量 PID 闭环控制](../experiments/005_pid_control/README.md)
+
+## 故障排查
+
+- [ROS 2 在 WSL 与 TUN 环境中的 DDS 发现问题](troubleshooting/ros2-dds-wsl-tun.md)

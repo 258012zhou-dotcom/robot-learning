@@ -89,7 +89,7 @@
 
 目标：理解机器人系统如何感知、通信、决策和执行。
 
-- [ ] ROS 2 工作空间和功能包
+- [x] ROS 2 工作空间和功能包
 - [ ] Node、Topic、Service 和 Action
 - [ ] Launch、Parameter 和 rosbag
 - [ ] TF2 与坐标系统

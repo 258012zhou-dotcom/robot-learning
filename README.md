@@ -63,6 +63,7 @@
 - `projects/cpp_point_robot`：验证 C++17 点机器人函数、CMake 构建和 CTest。
 - `projects/python_concurrency_demo`：验证多进程与 `asyncio` 的基本运行边界。
 - `projects/tcp_sensor_demo`：验证本机 TCP 上的 JSON 位置样本与确认消息。
+- `projects/ros2_point_robot_ws`：阶段 2 持续扩展的 ROS 2 Humble 点机器人工作空间。
 
 ## 学习原则
 
