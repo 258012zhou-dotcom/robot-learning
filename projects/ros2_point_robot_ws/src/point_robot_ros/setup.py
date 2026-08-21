@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'position_publisher = point_robot_ros.position_publisher:main',
+            'position_subscriber = point_robot_ros.position_subscriber:main',
         ],
     },
 )

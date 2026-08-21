@@ -7,6 +7,7 @@
 - `package.xml` 描述 ROS 元数据和依赖；`setup.py` 描述 Python 安装规则。
 - `colcon build` 生成构建结果；`source install/setup.bash` 将结果叠加到当前终端。
 - 构建成功、规范测试通过和功能运行正确是三个不同层次的验证。
+- Topic 是发布者与订阅者之间的异步数据通道；双方需要匹配 Topic 名称、消息类型和兼容的 QoS。
 
 ## 工作空间结构
 
@@ -60,6 +61,26 @@ workspace/
 - `point_robot_ros` 构建成功，并能由 `ros2 pkg prefix` 发现。
 - 包使用独立 `pytest.ini`，避免读取根项目的 pytest 配置。
 - 实际测试结果为 3 tests、0 errors、0 failures、1 skipped。
+- `position_publisher` 以约 `10 Hz` 发布 `geometry_msgs/msg/Point`，位置的 `x` 每次增加 `0.05`。
+- `position_subscriber` 通过回调函数接收 `/point_robot/position` 的新消息。
+- 实际运行时 ROS Graph 显示 1 个发布者和 1 个订阅者，订阅端连续收到位置数据。
+
+## Node 与 Topic 通信流程
+
+```text
+定时器
+  → PositionPublisher 创建 Point 消息
+  → /point_robot/position
+  → Cyclone DDS 传输
+  → PositionSubscriber 的回调函数
+  → 输出收到的位置
+```
+
+发布者调用 `create_publisher`，订阅者调用 `create_subscription`。订阅者不会主动轮询 Topic；ROS 2 executor 收到消息后调用注册的回调函数。
+
+双方当前使用的队列深度都是 `10`。它表示接收处理不及时期间可以保留的消息数量，不表示新订阅者能够读取连接前的十条历史消息。默认 volatile durability 下，订阅者通常只收到加入之后发布的新消息。
+
+Topic 适合连续、异步的数据流，例如传感器读数、机器人状态和速度指令。它不要求发布者等待订阅者处理完成，也不会像函数调用一样直接返回结果。
 
 ## 易错点
 
@@ -68,3 +89,4 @@ workspace/
 - 把生成的 `build/`、`install/` 和 `log/` 提交 Git。
 - 修改 `setup.py` 中的节点入口后忘记重新构建。
 - 看到发布日志或规范测试通过，就误认为进程间通信已经成功。
+- 把 QoS 队列深度误解成跨时间保存的历史消息数量。

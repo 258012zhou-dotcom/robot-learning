@@ -56,3 +56,42 @@ export ROS_DOMAIN_ID=31
 5. 最后才考虑更换 DDS、绑定网络接口或修改防火墙。
 
 不要仅凭发布节点打印日志就判断 Topic 已成功；必须在订阅端看到实际消息。
+
+## CLI daemon 与 DDS 正常通信的区别
+
+### 已验证现象
+
+项目位置发布者运行时：
+
+- `ros2 topic hz /point_robot/position` 能收到约 `10 Hz` 的消息。
+- `ros2 node list` 和 `ros2 topic list -t` 却长时间不返回。
+- `ps` 查不到正在运行的 `_ros2_daemon` 进程。
+- 加入 `--no-daemon --spin-time 3` 后，可以立即发现发布者节点和位置 Topic。
+
+这些证据说明发布者、Topic 数据和 Cyclone DDS 发现本身正常，异常只发生在 ROS 2 CLI 使用的后台 daemon。`ros2 topic hz` 会直接创建订阅者接收数据，而 `node list`、`topic list` 默认可能通过 daemon 查询缓存，因此两类命令的结果可以不同。
+
+### 恢复方法
+
+先确认当前终端配置：
+
+```bash
+echo "$RMW_IMPLEMENTATION"
+echo "$ROS_DOMAIN_ID"
+```
+
+本项目应分别得到 `rmw_cyclonedds_cpp` 和 `31`。然后在正确环境中重新启动 daemon：
+
+```bash
+timeout 10s ros2 daemon start
+```
+
+本次启动成功后，普通的 `ros2 node list` 和 `ros2 topic list -t` 恢复正常。`timeout` 只负责避免命令无限等待，不是修复手段；真正起作用的是新 daemon 继承了当前终端正确的 RMW 和 Domain ID。
+
+若 daemon 再次异常，可以临时绕过它：
+
+```bash
+ros2 node list --no-daemon --spin-time 3
+ros2 topic list -t --no-daemon --spin-time 3
+```
+
+切换 `RMW_IMPLEMENTATION` 或 `ROS_DOMAIN_ID` 后，应停止旧 daemon，并在新环境中重新启动。不要把 daemon 查询失败误判为 Topic 数据一定中断。

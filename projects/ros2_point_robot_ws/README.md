@@ -1,6 +1,6 @@
 # ROS 2 Point Robot Workspace
 
-这是阶段 2 持续扩展的 ROS 2 Humble 工作空间。当前只包含基础 Python 功能包 `point_robot_ros`，尚未实现节点通信。
+这是阶段 2 持续扩展的 ROS 2 Humble 工作空间。当前包含 Python 功能包 `point_robot_ros`，已经实现基于 Topic 的位置发布与订阅通信。
 
 ## 环境
 
@@ -50,3 +50,30 @@ colcon test-result --verbose
 - 0 errors，0 failures，1 skipped。
 
 这些测试只验证代码规范，不代表 Node 或 Topic 功能已经正确。
+
+## Topic 通信
+
+终端 A 运行位置发布者：
+
+```bash
+ros2 run point_robot_ros position_publisher
+```
+
+终端 B 运行位置订阅者：
+
+```bash
+ros2 run point_robot_ros position_subscriber
+```
+
+两个终端必须使用相同的 `RMW_IMPLEMENTATION` 和 `ROS_DOMAIN_ID`。当前 Topic 接口为：
+
+```text
+/point_robot/position [geometry_msgs/msg/Point]
+```
+
+实际运行验证结果：
+
+- 发布频率约为 `10 Hz`。
+- 订阅者连续收到位置消息，`x` 每次增加 `0.05`，`y` 保持为 `0.0`。
+- `ros2 topic info /point_robot/position` 显示 1 个 publisher 和 1 个 subscription。
+- 新订阅者从加入后的消息开始接收，不保证取得连接前的历史数据。
