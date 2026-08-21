@@ -82,6 +82,41 @@ workspace/
 
 Topic 适合连续、异步的数据流，例如传感器读数、机器人状态和速度指令。它不要求发布者等待订阅者处理完成，也不会像函数调用一样直接返回结果。
 
+## Service 请求与响应
+
+Service 用于一次请求对应一次响应的操作：
+
+```text
+客户端请求
+  → /point_robot/reset
+  → PositionPublisher 的服务回调
+  → 将内部位置重置为 0
+  → 返回 success 和 message
+```
+
+本项目使用 `std_srvs/srv/Trigger`。它的请求部分为空，响应包含 `bool success` 和 `string message`，适合“重置”“触发保存”等不需要请求参数的命令。
+
+服务端通过 `create_service` 注册接口和回调。客户端调用时，ROS 2 executor 执行服务回调；回调修改节点状态并返回响应。当前单线程 executor 会依次处理定时器与服务回调，因此本实验中二者不会同时修改位置。
+
+实际验证中，发布位置先增长到 `25.10`，服务返回 `success=True` 后，下一条 Topic 消息变为 `0.00`，随后继续以 `0.05` 递增。这同时证明了请求得到响应、内部状态被修改以及 Topic 继续运行。
+
+Python 客户端的调用流程为：
+
+```text
+wait_for_service
+  → call_async 返回 Future
+  → spin_until_future_complete 处理 ROS 事件
+  → future.result 取得响应
+```
+
+`Future` 表示尚未完成、稍后才会得到的结果。`call_async` 发出请求后立即返回，客户端必须继续处理 ROS 事件，响应到达后 Future 才会完成。项目中的 `reset_client` 已实际返回成功响应并正常退出。
+
+Topic 和 Service 的选择原则：
+
+- 连续状态、传感器数据和控制流使用 Topic。
+- 有明确完成结果的一次性操作使用 Service。
+- 耗时较长、需要进度反馈或取消能力的任务应使用 Action。
+
 ## 易错点
 
 - 在 Conda 环境中运行 ROS 2 Python 包。
@@ -90,3 +125,4 @@ Topic 适合连续、异步的数据流，例如传感器读数、机器人状�
 - 修改 `setup.py` 中的节点入口后忘记重新构建。
 - 看到发布日志或规范测试通过，就误认为进程间通信已经成功。
 - 把 QoS 队列深度误解成跨时间保存的历史消息数量。
+- 只检查 Service 的成功响应，却不验证它是否真的改变了系统状态。

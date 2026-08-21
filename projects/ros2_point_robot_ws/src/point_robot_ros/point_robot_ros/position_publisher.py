@@ -3,6 +3,7 @@
 import rclpy
 from geometry_msgs.msg import Point
 from rclpy.node import Node
+from std_srvs.srv import Trigger
 
 
 class PositionPublisher(Node):
@@ -25,6 +26,11 @@ class PositionPublisher(Node):
             self._timer_period,
             self._publish_position,
         )
+        self._reset_service = self.create_service(
+            Trigger,
+            "point_robot/reset",
+            self._reset_position,
+        )
 
     def _publish_position(self) -> None:
         message = Point()
@@ -40,6 +46,19 @@ class PositionPublisher(Node):
         )
 
         self._position_x += self._velocity_x * self._timer_period
+
+    def _reset_position(
+        self,
+        _request: Trigger.Request,
+        response: Trigger.Response,
+    ) -> Trigger.Response:
+        self._position_x = 0.0
+
+        response.success = True
+        response.message = "Position reset to x=0.0"
+
+        self.get_logger().info(response.message)
+        return response
 
 
 def main(args: list[str] | None = None) -> None:

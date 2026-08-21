@@ -77,3 +77,41 @@ ros2 run point_robot_ros position_subscriber
 - 订阅者连续收到位置消息，`x` 每次增加 `0.05`，`y` 保持为 `0.0`。
 - `ros2 topic info /point_robot/position` 显示 1 个 publisher 和 1 个 subscription。
 - 新订阅者从加入后的消息开始接收，不保证取得连接前的历史数据。
+
+## Reset Service
+
+位置发布节点同时提供重置服务：
+
+```text
+/point_robot/reset [std_srvs/srv/Trigger]
+```
+
+调用命令：
+
+```bash
+ros2 service call \
+  /point_robot/reset \
+  std_srvs/srv/Trigger \
+  "{}"
+```
+
+实际运行验证结果：
+
+- 服务返回 `success=True` 和 `Position reset to x=0.0`。
+- 调用前发布位置为 `25.10`。
+- 服务回调执行后，下一条位置消息变为 `0.00`。
+- 定时器没有停止，位置随后继续按 `0.05` 递增。
+
+因此该验证不仅检查了响应内容，也通过 Topic 输出确认了节点内部状态确实被重置。
+
+Python 客户端：
+
+```bash
+ros2 run point_robot_ros reset_client
+```
+
+客户端会等待服务、异步发送空的 `Trigger` 请求、等待 Future 完成并输出响应，然后正常退出。实际验证输出为：
+
+```text
+Reset response: success=True message=Position reset to x=0.0
+```
