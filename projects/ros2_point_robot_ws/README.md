@@ -44,12 +44,12 @@ colcon test-result --verbose
 
 当前实际结果：
 
-- 3 个规范测试被收集。
-- Flake8 和 PEP 257 通过。
+- `point_robot_ros` 的 Flake8 和 PEP 257 通过。
 - 版权头测试按模板默认跳过。
-- 0 errors，0 failures，1 skipped。
+- `point_robot_interfaces` 的 CMake lint 和 XML schema 检查通过。
+- 当前汇总为 7 tests、0 errors、0 failures、1 skipped。
 
-这些测试只验证代码规范，不代表 Node 或 Topic 功能已经正确。
+这些测试只验证代码与包配置规范，不代表 Topic、Service 或 Action 功能已经正确。
 
 ## Topic 通信
 
@@ -115,3 +115,60 @@ ros2 run point_robot_ros reset_client
 ```text
 Reset response: success=True message=Position reset to x=0.0
 ```
+
+## MoveToPosition Action
+
+自定义接口由独立包 `point_robot_interfaces` 提供：
+
+```text
+Goal
+  target_x
+  max_speed
+---
+Result
+  success
+  final_x
+  message
+---
+Feedback
+  current_x
+  remaining_distance
+```
+
+运行 Action Server：
+
+```bash
+ros2 run point_robot_ros move_action_server
+```
+
+运行位置订阅者：
+
+```bash
+ros2 run point_robot_ros position_subscriber
+```
+
+可使用 CLI Client 发送目标：
+
+```bash
+ros2 action send_goal \
+  /point_robot/move_to_position \
+  point_robot_interfaces/action/MoveToPosition \
+  "{target_x: 1.0, max_speed: 0.2}" \
+  --feedback
+```
+
+也可以运行 Python Client：
+
+```bash
+ros2 run point_robot_ros move_action_client
+```
+
+实际验证结果：
+
+- Goal 被接受。
+- Action Feedback 与位置 Topic 同步增长。
+- 到达目标后返回 `success=True`、正确的 `final_x` 和 `Target reached`。
+- Goal 最终状态为 `SUCCEEDED`。
+- 服务器可以通过 `Ctrl+C` 干净退出。
+
+当前实现有意拒绝取消请求，并且尚未处理多个 Goal 并发。运行 Action Server 时不要同时运行旧的 `position_publisher`，否则 `/point_robot/position` 会有两个发布者。

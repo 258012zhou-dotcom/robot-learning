@@ -1,0 +1,9 @@
+float64 target_x
+float64 max_speed
+---
+bool success
+float64 final_x
+string message
+---
+float64 current_x
+float64 remaining_distance

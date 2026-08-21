@@ -111,7 +111,54 @@ wait_for_service
 
 `Future` 表示尚未完成、稍后才会得到的结果。`call_async` 发出请求后立即返回，客户端必须继续处理 ROS 事件，响应到达后 Future 才会完成。项目中的 `reset_client` 已实际返回成功响应并正常退出。
 
-Topic 和 Service 的选择原则：
+## Action 目标、反馈与结果
+
+Action 适合需要一段时间完成、需要过程反馈的任务：
+
+```text
+MoveToPosition Goal
+  → Action Server 接受目标
+  → 循环更新位置
+  → 发布位置 Topic
+  → 发布 current_x 与 remaining_distance Feedback
+  → 到达目标
+  → 返回 success、final_x 与 message Result
+```
+
+项目把通信协议和节点实现分成两个包：
+
+- `point_robot_interfaces` 使用 `ament_cmake` 和 rosidl 定义、生成 `MoveToPosition.action` 类型。
+- `point_robot_ros` 使用 `ament_python` 实现 Action Server、Action Client 和位置订阅者。
+
+接口包只规定 Goal、Result 和 Feedback 的字段，不实现运动算法。构建后会生成 Python、C、C++ 和 DDS 类型支持，因此不同语言或不同机器上的节点可以共享同一通信协议。
+
+当前运动更新规则为：
+
+```text
+每步最大位移 = max_speed × 0.1
+实际步长 = min(每步最大位移, 剩余距离)
+```
+
+Action Client 需要处理两个 Future：
+
+```text
+send_goal_async
+  → goal Future：等待目标被接受或拒绝
+  → get_result_async
+  → result Future：等待任务最终完成
+```
+
+Feedback 通过独立回调在等待 Result 期间持续到达。实际验证中，CLI Client 和 Python Client 都能完成目标；位置订阅者观察到相同运动过程，最终 Result 为 `SUCCEEDED`。
+
+当前版本的限制：
+
+- 使用单线程、阻塞式执行循环。
+- 明确拒绝取消请求。
+- 尚未定义同时收到多个 Goal 时的调度策略。
+
+因此当前只记录 Goal、Feedback、Result 与 Topic 联动已验证，取消和并发仍是知识空白。
+
+## Topic、Service 与 Action 的选择
 
 - 连续状态、传感器数据和控制流使用 Topic。
 - 有明确完成结果的一次性操作使用 Service。
@@ -126,3 +173,5 @@ Topic 和 Service 的选择原则：
 - 看到发布日志或规范测试通过，就误认为进程间通信已经成功。
 - 把 QoS 队列深度误解成跨时间保存的历史消息数量。
 - 只检查 Service 的成功响应，却不验证它是否真的改变了系统状态。
+- 把 Action Goal 被接受误认为任务已经成功完成。
+- 实现阻塞执行循环，却同时宣称支持可靠取消。

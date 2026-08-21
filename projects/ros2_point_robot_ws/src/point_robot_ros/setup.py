@@ -27,6 +27,8 @@ setup(
             'position_publisher = point_robot_ros.position_publisher:main',
             'position_subscriber = point_robot_ros.position_subscriber:main',
             'reset_client = point_robot_ros.reset_client:main',
+            'move_action_server = point_robot_ros.move_action_server:main',
+            'move_action_client = point_robot_ros.move_action_client:main',
         ],
     },
 )
