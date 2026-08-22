@@ -64,6 +64,8 @@ workspace/
 - `position_publisher` 以约 `10 Hz` 发布 `geometry_msgs/msg/Point`，位置的 `x` 每次增加 `0.05`。
 - `position_subscriber` 通过回调函数接收 `/point_robot/position` 的新消息。
 - 实际运行时 ROS Graph 显示 1 个发布者和 1 个订阅者，订阅端连续收到位置数据。
+- `/point_robot/reset` Service 已验证请求、响应和内部状态重置。
+- `/point_robot/move_to_position` Action 已验证成功完成、过程反馈、取消和单目标并发保护。
 
 ## Node 与 Topic 通信流程
 
@@ -150,13 +152,35 @@ send_goal_async
 
 Feedback 通过独立回调在等待 Result 期间持续到达。实际验证中，CLI Client 和 Python Client 都能完成目标；位置订阅者观察到相同运动过程，最终 Result 为 `SUCCEEDED`。
 
-当前版本的限制：
+## Action 取消与并发保护
 
-- 使用单线程、阻塞式执行循环。
-- 明确拒绝取消请求。
-- 尚未定义同时收到多个 Goal 时的调度策略。
+Action 的取消不是客户端直接终止服务端函数，而是一个协作流程：
 
-因此当前只记录 Goal、Feedback、Result 与 Topic 联动已验证，取消和并发仍是知识空白。
+```text
+客户端请求取消
+  → cancel_callback 决定是否接受请求
+  → execute_callback 检查 is_cancel_requested
+  → goal_handle.canceled() 设置最终状态
+  → 返回取消时的 Result
+```
+
+`CancelResponse.ACCEPT` 只表示服务端同意处理取消请求，不代表任务已经停止。执行循环仍需主动检查取消标志、停止运动并调用 `goal_handle.canceled()`。本项目在取消时返回 `success=False`、取消位置和 `Goal canceled`，客户端最终状态为 `CANCELED`。
+
+阻塞式执行循环会反复休眠。如果使用单线程 executor，执行回调占用唯一线程时，取消回调无法及时运行。当前实现使用：
+
+- `MultiThreadedExecutor(num_threads=2)`：允许两个 ROS 回调并行得到执行机会。
+- `ReentrantCallbackGroup`：允许同一回调组内的 Action 回调重叠执行。
+- `Lock` 与 `_goal_active`：以线程安全方式保留唯一活动目标，防止两个运动循环同时修改 `_current_x`。
+- `finally`：无论目标成功、取消还是异常结束，都释放活动目标标记。
+
+当前调度策略是“同一时间只执行一个 Goal”。目标回调先校验 `target_x` 和 `max_speed`；已有目标执行时，新目标直接返回 `GoalResponse.REJECT`。这是一种明确且安全的简化策略，后续可以扩展为抢占（preemption）、排队或按优先级调度。
+
+实际验证证据：
+
+- 正常目标持续返回 Feedback，最终状态为 `SUCCEEDED`。
+- 目标移动到约 `x=2.92` 时成功取消，Result 保存取消位置，最终状态为 `CANCELED`。
+- 第一个目标运行到约 `x=4.63` 时发送第二个目标，第二个目标显示 `Goal was rejected`，第一个目标继续运行。
+- `colcon test-result --verbose` 汇总为 7 tests、0 errors、0 failures、1 skipped。它证明包规范检查通过；取消与并发正确性来自上述实际运行验证，而不是这些规范测试。
 
 ## Topic、Service 与 Action 的选择
 

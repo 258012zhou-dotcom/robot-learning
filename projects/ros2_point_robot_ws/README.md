@@ -1,6 +1,6 @@
 # ROS 2 Point Robot Workspace
 
-这是阶段 2 持续扩展的 ROS 2 Humble 工作空间。当前包含 Python 功能包 `point_robot_ros`，已经实现基于 Topic 的位置发布与订阅通信。
+这是阶段 2 持续扩展的 ROS 2 Humble 工作空间。当前包含节点包 `point_robot_ros` 和接口包 `point_robot_interfaces`，已经实现 Topic、Service 和 Action 通信。
 
 ## 环境
 
@@ -169,6 +169,20 @@ ros2 run point_robot_ros move_action_client
 - Action Feedback 与位置 Topic 同步增长。
 - 到达目标后返回 `success=True`、正确的 `final_x` 和 `Target reached`。
 - Goal 最终状态为 `SUCCEEDED`。
+- 客户端取消后，服务器停止运动并返回取消位置，Goal 最终状态为 `CANCELED`。
+- 一个 Goal 执行期间发送第二个 Goal，第二个 Goal 被拒绝，避免两个任务同时修改位置。
 - 服务器可以通过 `Ctrl+C` 干净退出。
 
-当前实现有意拒绝取消请求，并且尚未处理多个 Goal 并发。运行 Action Server 时不要同时运行旧的 `position_publisher`，否则 `/point_robot/position` 会有两个发布者。
+取消测试可以发送一个耗时目标，在持续收到 Feedback 时按 `Ctrl+C`：
+
+```bash
+ros2 action send_goal \
+  /point_robot/move_to_position \
+  point_robot_interfaces/action/MoveToPosition \
+  "{target_x: 10.0, max_speed: 0.2}" \
+  --feedback
+```
+
+当前 Action Server 使用两线程 executor 和可重入回调组，使执行目标期间仍能处理取消请求。`Lock` 与活动目标标记实现“同一时间只执行一个 Goal”的策略；第二个并发目标会得到 `Goal was rejected`。
+
+运行 Action Server 时不要同时运行旧的 `position_publisher`，否则 `/point_robot/position` 会有两个发布者。当前系统仍是软件模拟的点机器人，不代表真实电机控制结果。
