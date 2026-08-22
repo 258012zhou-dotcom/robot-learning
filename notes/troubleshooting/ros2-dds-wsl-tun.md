@@ -70,7 +70,63 @@ export ROS_DOMAIN_ID=31
 
 这些证据说明发布者、Topic 数据和 Cyclone DDS 发现本身正常，异常只发生在 ROS 2 CLI 使用的后台 daemon。`ros2 topic hz` 会直接创建订阅者接收数据，而 `node list`、`topic list` 默认可能通过 daemon 查询缓存，因此两类命令的结果可以不同。
 
-### 恢复方法
+### 深入定位结果
+
+进一步检查确认，这次 CLI 卡住与前面的 Fast DDS 通信失败不是同一个问题：
+
+- Windows 用户配置启用了 WSL `networkingMode=mirrored`。
+- ROS 2 Domain 31 的 CLI daemon 使用本机 TCP 端口 `127.0.0.1:11542`，其中 `11542 = 11511 + 31`。
+- daemon 不存在时，`strace` 显示 CLI 阻塞在连接 `127.0.0.1:11542`。
+- `ip route get 127.0.0.1` 显示连接先进入 WSL 镜像网络的 `loopback0` 和路由表 127，而不是立即在 Linux 本机返回“端口未监听”。
+- 多个未监听的本机端口都会超时；临时启动本机监听服务后，同一地址又能正常连接。
+- daemon 一旦提前启动，普通的 `node list`、`param list` 和 `param get` 都能正常工作。
+
+因此，直接原因是：ROS 2 CLI 假设“daemon 不存在时，连接本机端口会立即失败”，但当前 WSL 镜像网络会让这个未监听连接等待超时。`--no-daemon` 能绕过问题，但不适合作为长期日常用法。
+
+### 当前长期方案
+
+项目提供按需激活脚本：
+
+```bash
+cd ~/AI_Project/robot-learning
+source scripts/activate_ros2_project.sh
+```
+
+它只配置当前终端，统一加载 ROS 2、工作空间、Cyclone DDS 和 Domain 31，不污染普通 Conda 环境。
+
+用户级 systemd 服务持续维护 Domain 31 的 daemon：
+
+```bash
+systemctl --user status ros2-cli-daemon-domain31.service
+systemctl --user restart ros2-cli-daemon-domain31.service
+journalctl --user -u ros2-cli-daemon-domain31.service -n 50
+```
+
+服务定义位于：
+
+```text
+projects/ros2_point_robot_ws/systemd/ros2-cli-daemon-domain31.service
+```
+
+在新的本地副本中首次安装服务：
+
+```bash
+cd ~/AI_Project/robot-learning
+systemctl --user link "$PWD/projects/ros2_point_robot_ws/systemd/ros2-cli-daemon-domain31.service"
+systemctl --user enable --now ros2-cli-daemon-domain31.service
+```
+
+它使用 Cyclone DDS、Domain 31 和 7 天无活动超时；若进程退出，systemd 会自动重启。最终验证中，systemd 主进程与 `127.0.0.1:11542` 的监听进程一致，普通 ROS 2 查询命令均成功。
+
+如需完整撤销：
+
+```bash
+systemctl --user disable --now ros2-cli-daemon-domain31.service
+rm ~/.config/systemd/user/ros2-cli-daemon-domain31.service
+systemctl --user daemon-reload
+```
+
+### 临时恢复方法
 
 先确认当前终端配置：
 
@@ -85,7 +141,7 @@ echo "$ROS_DOMAIN_ID"
 timeout 10s ros2 daemon start
 ```
 
-本次启动成功后，普通的 `ros2 node list` 和 `ros2 topic list -t` 恢复正常。`timeout` 只负责避免命令无限等待，不是修复手段；真正起作用的是新 daemon 继承了当前终端正确的 RMW 和 Domain ID。
+daemon 启动成功后，普通的 `ros2 node list` 和 `ros2 topic list -t` 应恢复正常。`timeout` 只负责避免命令无限等待，不是修复手段；真正起作用的是 daemon 已经监听本机端口并继承了正确的 RMW 和 Domain ID。
 
 若 daemon 再次异常，可以临时绕过它：
 

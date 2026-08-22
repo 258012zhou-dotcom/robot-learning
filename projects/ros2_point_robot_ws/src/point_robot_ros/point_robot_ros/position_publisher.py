@@ -4,6 +4,8 @@ import rclpy
 from geometry_msgs.msg import Point
 from rclpy.node import Node
 from std_srvs.srv import Trigger
+from rcl_interfaces.msg import SetParametersResult
+from rclpy.parameter import Parameter
 
 
 class PositionPublisher(Node):
@@ -18,9 +20,24 @@ class PositionPublisher(Node):
             10,
         )
 
-        self._timer_period = 0.1
-        self._velocity_x = 0.5
-        self._position_x = 0.0
+        self.declare_parameter("timer_period", 0.1)
+        self.declare_parameter("velocity_x", 0.5)
+        self.declare_parameter("initial_x", 0.0)
+
+        self._timer_period = float(
+            self.get_parameter("timer_period").value
+        )
+        self._velocity_x = float(
+            self.get_parameter("velocity_x").value
+        )
+        self._position_x = float(
+            self.get_parameter("initial_x").value
+        )
+
+        if self._timer_period <= 0.0:
+            raise ValueError("timer_period must be positive")
+
+        self.add_on_set_parameters_callback(self._update_parameters)
 
         self._timer = self.create_timer(
             self._timer_period,
@@ -31,6 +48,36 @@ class PositionPublisher(Node):
             "point_robot/reset",
             self._reset_position,
         )
+
+    def _update_parameters(
+        self,
+        parameters: list[Parameter],
+    ) -> SetParametersResult:
+        """Validate and apply runtime parameter updates."""
+        for parameter in parameters:
+            if parameter.name in {"initial_x", "timer_period"}:
+                return SetParametersResult(
+                    successful=False,
+                    reason=f"{parameter.name} is startup-only",
+                )
+
+            if (
+                parameter.name == "velocity_x"
+                and parameter.type_ != Parameter.Type.DOUBLE
+            ):
+                return SetParametersResult(
+                    successful=False,
+                    reason="velocity_x must be a double",
+                )
+
+        for parameter in parameters:
+            if parameter.name == "velocity_x":
+                self._velocity_x = float(parameter.value)
+                self.get_logger().info(
+                    "Updated velocity_x to %.2f" % self._velocity_x
+                )
+
+        return SetParametersResult(successful=True)
 
     def _publish_position(self) -> None:
         message = Point()

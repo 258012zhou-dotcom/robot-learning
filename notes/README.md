@@ -39,6 +39,11 @@
 ## 阶段 2：ROS 2 机器人软件
 
 - 工作空间、功能包、环境叠加与 colcon：[ROS 2 工作空间与功能包](concepts/ros2-workspace-and-package.md)
+- 节点配置、启动参数与动态更新：[ROS 2 Parameter](concepts/ros2-parameters.md)
+- 多节点启动、参数连接与进程管理：[ROS 2 Launch](concepts/ros2-launch.md)
+- 自动启动节点并验证真实 Topic 通信：[ROS 2 最小集成测试](concepts/ros2-integration-testing.md)
+- Topic 数据的记录、检查、回放与复现边界：[ROS 2 rosbag](concepts/ros2-rosbag.md)
+- 坐标树、静态与动态变换、旋转和平移：[ROS 2 TF2](concepts/ros2-tf2.md)
 - 持续扩展项目：[ROS 2 Point Robot Workspace](../projects/ros2_point_robot_ws/README.md)
 
 ## 记录与实验

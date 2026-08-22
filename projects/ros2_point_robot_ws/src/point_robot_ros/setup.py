@@ -1,4 +1,8 @@
+import os
+from glob import glob
+
 from setuptools import find_packages, setup
+
 
 package_name = 'point_robot_ros'
 
@@ -10,6 +14,10 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (
+            os.path.join("share", package_name, "launch"),
+            glob("launch/*.launch.py"),
+        ),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -29,6 +37,7 @@ setup(
             'reset_client = point_robot_ros.reset_client:main',
             'move_action_server = point_robot_ros.move_action_server:main',
             'move_action_client = point_robot_ros.move_action_client:main',
+            'position_tf_broadcaster = point_robot_ros.position_tf_broadcaster:main',
         ],
     },
 )

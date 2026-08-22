@@ -4,15 +4,15 @@
 
 ## 环境
 
-ROS 2 使用 Ubuntu 系统 Python，与根项目的 Conda 环境分开。每个新终端先执行：
+ROS 2 使用 Ubuntu 系统 Python，与根项目的 Conda 环境分开。每个新终端先在项目根目录执行：
 
 ```bash
-source /opt/ros/humble/setup.bash
-export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-export ROS_DOMAIN_ID=31
+source scripts/activate_ros2_project.sh
 ```
 
-当前 WSL/TUN 环境使用 Cyclone DDS；原因见 [DDS 故障记录](../../notes/troubleshooting/ros2-dds-wsl-tun.md)。
+该脚本加载 ROS 2 Humble 和当前工作空间，并统一设置 Cyclone DDS 与 Domain 31。不要把 ROS 环境全局写入普通 Conda 终端，以免 ROS 的 Python 路径和 pytest 插件污染机器学习环境。
+
+当前还启用了用户服务 `ros2-cli-daemon-domain31.service`，用于持续维护 Domain 31 的 ROS 2 CLI daemon。服务定义保存在 [`systemd/`](systemd/)；安装、检查和撤销方法见 [DDS 与 daemon 故障记录](../../notes/troubleshooting/ros2-dds-wsl-tun.md)。
 
 ## 结构
 
@@ -47,9 +47,114 @@ colcon test-result --verbose
 - `point_robot_ros` 的 Flake8 和 PEP 257 通过。
 - 版权头测试按模板默认跳过。
 - `point_robot_interfaces` 的 CMake lint 和 XML schema 检查通过。
-- 当前汇总为 7 tests、0 errors、0 failures、1 skipped。
+- `test_position_topic_launch.py` 会自动启动位置发布者，并由临时测试节点通过 DDS 订阅位置 Topic。
+- 使用独立的 `ROS_DOMAIN_ID=132` 运行后，当前汇总为 8 tests、0 errors、0 failures、1 skipped。
 
-这些测试只验证代码与包配置规范，不代表 Topic、Service 或 Action 功能已经正确。
+其中代码规范测试不代表通信功能正确；新增的集成测试验证了位置 Topic 能收到至少三条消息、`y` 保持为零、`x` 递增且相邻步长符合启动参数。Service、Action 和完整 Launch 系统目前仍以手动运行验证为主。
+
+为了避免日常 Domain 31 中的节点干扰，集成测试使用临时 DDS Domain：
+
+```bash
+ROS_DOMAIN_ID=132 colcon test \
+  --packages-select point_robot_ros \
+  --event-handlers console_direct+
+colcon test-result --verbose
+```
+
+测试的结构和证据边界见 [ROS 2 最小集成测试笔记](../../notes/concepts/ros2-integration-testing.md)。
+
+## Parameter
+
+位置发布者声明三个参数：
+
+- `initial_x`：启动位置，只能在启动时设置。
+- `timer_period`：发布周期，只能在启动时设置，且必须大于零。
+- `velocity_x`：x 方向速度，支持运行时动态修改。
+
+启动时覆盖默认值：
+
+```bash
+ros2 run point_robot_ros position_publisher \
+  --ros-args \
+  -p initial_x:=0.0 \
+  -p velocity_x:=1.0 \
+  -p timer_period:=0.2
+```
+
+运行时修改速度：
+
+```bash
+ros2 param set /position_publisher velocity_x 2.0
+```
+
+实际验证中，速度为 `1.0`、周期为 `0.2 s` 时位置每次增加 `0.20`；动态修改速度为 `2.0` 后，每次增加 `0.40`。修改 `timer_period` 会被回调拒绝并返回 `timer_period is startup-only`。
+
+参数声明、读取、验证和动态回调的关系见 [ROS 2 Parameter 笔记](../../notes/concepts/ros2-parameters.md)。
+
+## Launch
+
+`point_robot.launch.py` 同时启动位置发布者、订阅者和动态 TF 广播节点，并把 Launch arguments 转换为发布者的节点参数。
+
+查看可用参数：
+
+```bash
+ros2 launch point_robot_ros point_robot.launch.py --show-args
+```
+
+使用自定义参数运行：
+
+```bash
+ros2 launch point_robot_ros point_robot.launch.py \
+  initial_x:=2.0 \
+  velocity_x:=1.0 \
+  timer_period:=0.2
+```
+
+实际验证中，Launch 同时创建 `/position_publisher`、`/position_subscriber` 和 `/position_tf_broadcaster`，Topic 显示 1 个发布者和 2 个订阅者，三个发布者参数均与命令行输入一致。前台运行时使用 `Ctrl+C`，由 Launch 统一停止三个子进程。
+
+Launch 文件结构、参数传递和进程边界见 [ROS 2 Launch 笔记](../../notes/concepts/ros2-launch.md)。
+
+## rosbag 记录与回放
+
+位置 Topic 的实验数据保存在根项目的 `data/local/rosbags/`，该目录已被 Git 忽略。
+
+```bash
+ros2 bag record \
+  /point_robot/position \
+  -o data/local/rosbags/point_robot_position
+
+ros2 bag info data/local/rosbags/point_robot_position
+ros2 bag play data/local/rosbags/point_robot_position
+```
+
+实际记录结果为 16.60 秒、167 条 `geometry_msgs/msg/Point` 消息，平均频率约为 10 Hz，SQLite3 数据文件大小为 33.0 KiB。停止原发布者后，回放进程重新发布 `/point_robot/position`；订阅者在回放前等待、回放期间连续接收、回放结束后停止接收。
+
+这证明选定 Topic 的消息和时间关系可以离线复现，但不代表发布节点的内部状态、Service、Action 或整个系统执行过程都已保存。详细说明见 [ROS 2 rosbag 笔记](../../notes/concepts/ros2-rosbag.md)。
+
+## TF2 坐标系统
+
+`position_tf_broadcaster` 订阅 `/point_robot/position`，把位置消息转换为动态变换：
+
+```text
+world → base_link
+```
+
+该变换发布到 `/tf`，时间戳来自节点时钟，平移取自 `Point` 消息，当前旋转使用单位四元数。节点已经加入 `point_robot.launch.py`。
+
+```bash
+ros2 launch point_robot_ros point_robot.launch.py
+ros2 run tf2_ros tf2_echo world base_link
+```
+
+实际验证包括：
+
+- 静态建立 `world → base_link → camera_link` 两级坐标树。
+- TF2 正确组合得到 `world → camera_link` 平移 `[1.2, 0.5, 0.3]`。
+- `camera_link` 绕 z 轴旋转 90° 后，四元数约为 `[0, 0, 0.707, 0.707]`。
+- 动态变换在约 1 秒内从 `x=35.3` 更新到 `x=35.8`，符合默认速度 `0.5 m/s`。
+- `view_frames` 显示 `world → base_link`，平均发布频率约为 `10.196 Hz`，缓存跨度约为 `5.1 s`。
+
+TF2 的坐标树、变换公式、时间语义与当前边界见 [ROS 2 TF2 笔记](../../notes/concepts/ros2-tf2.md)。
 
 ## Topic 通信
 

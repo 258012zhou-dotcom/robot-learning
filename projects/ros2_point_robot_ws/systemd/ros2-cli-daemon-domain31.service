@@ -1,0 +1,16 @@
+[Unit]
+Description=ROS 2 CLI daemon for Cyclone DDS domain 31
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+Environment=ROS_DOMAIN_ID=31
+Environment=ROS_LOCALHOST_ONLY=0
+ExecStart=/bin/bash -c 'source /opt/ros/humble/setup.bash && exec /opt/ros/humble/bin/_ros2_daemon --rmw-implementation rmw_cyclonedds_cpp --ros-domain-id 31 --timeout 604800'
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target
