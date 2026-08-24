@@ -9,6 +9,7 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from launch.conditions import IfCondition
+from launch.conditions import UnlessCondition
 
 
 def generate_launch_description() -> LaunchDescription:
@@ -23,6 +24,7 @@ def generate_launch_description() -> LaunchDescription:
     velocity_x = LaunchConfiguration("velocity_x")
     timer_period = LaunchConfiguration("timer_period")
     use_rviz = LaunchConfiguration("use_rviz")
+    use_joint_gui = LaunchConfiguration("use_joint_gui")
     position_publisher = Node(
         package="point_robot_ros",
         executable="position_publisher",
@@ -83,6 +85,21 @@ def generate_launch_description() -> LaunchDescription:
         ],
         condition=IfCondition(use_rviz),
     )
+    joint_state_publisher = Node(
+        package="joint_state_publisher",
+        executable="joint_state_publisher",
+        name="joint_state_publisher",
+        output="screen",
+        condition=UnlessCondition(use_joint_gui),
+    )
+
+    joint_state_publisher_gui = Node(
+        package="joint_state_publisher_gui",
+        executable="joint_state_publisher_gui",
+        name="joint_state_publisher_gui",
+        output="screen",
+        condition=IfCondition(use_joint_gui),
+    )
 
     return LaunchDescription(
         [
@@ -106,10 +123,17 @@ def generate_launch_description() -> LaunchDescription:
                 default_value="false",
                 description="Start RViz with the saved configuration",
             ),
+            DeclareLaunchArgument(
+                "use_joint_gui",
+                default_value="false",
+                description="Start the joint state publisher GUI",
+            ),
             position_publisher,
             position_subscriber,
             position_tf_broadcaster,
             robot_state_publisher,
+            joint_state_publisher,
+            joint_state_publisher_gui,
             rviz,
         ]
     )

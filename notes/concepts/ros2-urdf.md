@@ -29,17 +29,20 @@
 
 ## Joint 与坐标关系
 
-当前固定关节为：
+摄像头关节最初用固定关节验证模型发布，随后扩展为单自由度旋转关节：
 
 ```xml
-<joint name="camera_joint" type="fixed">
+<joint name="camera_joint" type="revolute">
   <parent link="base_link"/>
   <child link="camera_link"/>
   <origin xyz="0.25 0 0.28" rpy="0 0 0"/>
+  <axis xyz="0 0 1"/>
+  <limit lower="-1.5708" upper="1.5708"
+         effort="1.0" velocity="1.0"/>
 </joint>
 ```
 
-它表示 `camera_link` 位于 `base_link` 前方 `0.25 m`、上方 `0.28 m`，方向一致。`fixed` 表示相对位姿不随时间变化，所以不需要 `joint_state_publisher`。
+它表示摄像头安装点位于 `base_link` 前方 `0.25 m`、上方 `0.28 m`，并可绕 z 轴在约 ±90° 内转动。JointState 提供角度，`robot_state_publisher` 根据 URDF 完成正运动学并发布动态 TF。
 
 若关节类型改为 `revolute`、`continuous` 或 `prismatic`，还要声明转轴、运动范围，并提供实时 JointState。URDF 描述结构和约束，不负责自己计算控制命令。
 
@@ -60,6 +63,6 @@ point_robot.urdf
 
 ## 验证证据与边界
 
-`check_urdf` 已确认根 Link 为 `base_link`，并正确连接一个子 Link `camera_link`。`tf2_echo` 验证固定平移为 `[0.25, 0, 0.28]`，完整 `world → camera_link` 也能随底座运动更新。自动测试保持 8 tests、0 errors、0 failures、1 skipped。
+`check_urdf` 已确认根 Link 为 `base_link`，并正确连接一个子 Link `camera_link`。摄像头平移保持 `[0.25, 0, 0.28]`，方向随 `camera_joint` 改变；完整 `world → camera_link` 同时包含底座运动和摄像头转动。最新完整测试已在实际 WSL 终端确认无 errors 或 failures。
 
 当前模型仍是简单几何体，没有轮子、可动关节、网格资源或真实传感器参数。颜色、尺寸比例、遮挡关系和运动显示需要在 RViz 中继续验证。

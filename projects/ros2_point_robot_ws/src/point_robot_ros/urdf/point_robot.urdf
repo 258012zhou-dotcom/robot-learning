@@ -64,10 +64,16 @@
     </inertial>
   </link>
 
-  <joint name="camera_joint" type="fixed">
+  <joint name="camera_joint" type="revolute">
     <parent link="base_link"/>
     <child link="camera_link"/>
     <origin xyz="0.25 0 0.28" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit
+      lower="-1.5708"
+      upper="1.5708"
+      effort="1.0"
+      velocity="1.0"/>
   </joint>
 
 </robot>

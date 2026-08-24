@@ -48,7 +48,7 @@ colcon test-result --verbose
 - 版权头测试按模板默认跳过。
 - `point_robot_interfaces` 的 CMake lint 和 XML schema 检查通过。
 - `test_position_topic_launch.py` 会自动启动位置发布者，并由临时测试节点通过 DDS 订阅位置 Topic。
-- 使用独立的 `ROS_DOMAIN_ID=132` 运行后，当前汇总为 8 tests、0 errors、0 failures、1 skipped。
+- 使用独立的 `ROS_DOMAIN_ID=132` 运行后，最新完整测试由实际 WSL 终端确认 0 errors、0 failures；其中包含 6 个运动学单元测试。
 
 其中代码规范测试不代表通信功能正确；新增的集成测试验证了位置 Topic 能收到至少三条消息、`y` 保持为零、`x` 递增且相邻步长符合启动参数。Service、Action 和完整 Launch 系统目前仍以手动运行验证为主。
 
@@ -93,7 +93,7 @@ ros2 param set /position_publisher velocity_x 2.0
 
 ## Launch
 
-`point_robot.launch.py` 同时启动位置发布者、订阅者、动态 TF 广播节点和 `robot_state_publisher`，并把 Launch arguments 转换为发布者的节点参数、把已安装的 URDF 加载为 `robot_description`。
+`point_robot.launch.py` 同时管理位置通信、动态 TF、`robot_state_publisher`、关节状态发布器和可选 RViz，并把已安装的 URDF 加载为 `robot_description`。
 
 查看可用参数：
 
@@ -110,7 +110,7 @@ ros2 launch point_robot_ros point_robot.launch.py \
   timer_period:=0.2
 ```
 
-实际验证中，Launch 同时创建 `/position_publisher`、`/position_subscriber`、`/position_tf_broadcaster` 和 `/robot_state_publisher`。位置 Topic 显示 1 个发布者和 2 个订阅者，三个位置发布参数均与命令行输入一致。前台运行时使用 `Ctrl+C`，由 Launch 统一停止四个子进程。
+`use_joint_gui` 默认为 `false`，此时无界面的 `joint_state_publisher` 发布默认关节角；设置为 `true` 时改为启动 `joint_state_publisher_gui`。`IfCondition` 与 `UnlessCondition` 保证两者互斥，避免同时向 `/joint_states` 发布冲突状态。前台运行时使用 `Ctrl+C`，由 Launch 统一清理子进程。
 
 Launch 文件结构、参数传递和进程边界见 [ROS 2 Launch 笔记](../../notes/concepts/ros2-launch.md)。
 
@@ -158,15 +158,15 @@ TF2 的坐标树、变换公式、时间语义与当前边界见 [ROS 2 TF2 笔�
 
 ## URDF 机器人模型
 
-`urdf/point_robot.urdf` 描述一个蓝色箱体底座和固定安装的摄像头：
+`urdf/point_robot.urdf` 描述一个蓝色箱体底座和可绕 z 轴转动的摄像头：
 
 ```text
 base_link
-└── camera_joint (fixed)
+└── camera_joint (revolute, -90° to 90°)
     └── camera_link
 ```
 
-底座尺寸为 `0.6 × 0.4 × 0.2 m`，摄像头尺寸为 `0.12 × 0.08 × 0.08 m`。`camera_joint` 将摄像头放在底座前方 `0.25 m`、上方 `0.28 m`。两个 Link 都包含 visual、collision、mass 和 inertia。
+底座尺寸为 `0.6 × 0.4 × 0.2 m`，摄像头尺寸为 `0.12 × 0.08 × 0.08 m`。`camera_joint` 的安装点位于底座前方 `0.25 m`、上方 `0.28 m`，旋转范围约为 `-1.571～1.571 rad`。两个 Link 都包含 visual、collision、mass 和 inertia。
 
 URDF 由 `setup.py` 安装到功能包共享目录。Launch 从安装目录读取文件，并通过标准参数 `robot_description` 交给 `robot_state_publisher`。
 
@@ -180,10 +180,11 @@ ros2 run tf2_ros tf2_echo world camera_link
 实际验证结果：
 
 - `check_urdf` 成功解析，根 Link 为 `base_link`，子 Link 为 `camera_link`。
-- 固定变换 `base_link → camera_link` 为 `[0.25, 0, 0.28]`，时间显示为 `0.0`。
-- TF2 能组合动态与静态关系，得到连续更新的 `world → camera_link`。
-- `/tf` 发布端来自动态广播节点和 `robot_state_publisher`，`/tf_static` 由 `robot_state_publisher` 发布固定关节。
-- 修改后测试汇总为 8 tests、0 errors、0 failures、1 skipped。
+- `/joint_states` 正确发布 `camera_joint` 的角度，`robot_state_publisher` 据此更新 `base_link → camera_link`。
+- 关节角约为 `1.571 rad` 时，Yaw 为 90°，四元数约为 `[0, 0, 0.707, 0.707]`。
+- 摄像头安装点平移保持 `[0.25, 0, 0.28]`，方向随关节角变化。
+- TF2 能继续组合底座运动与摄像头转动，得到动态 `world → camera_link`。
+- 最新完整测试由实际 WSL 终端确认通过，无 errors 或 failures。
 
 模型结构和发布流程见 [ROS 2 URDF 笔记](../../notes/concepts/ros2-urdf.md)。模型外观尚待 RViz 实际检查。
 
@@ -203,12 +204,30 @@ ros2 launch point_robot_ros point_robot.launch.py \
 
 - RViz 正确显示蓝色 `base_link` 和深灰色 `camera_link`。
 - TF 显示为 `world → base_link → camera_link`，坐标轴与名称可见。
-- 运行时把 `velocity_x` 从 `0.0` 改为 `0.1` 后，两个 Link 保持固定相对关系并沿 world 的 x 轴一起移动。
+- 运行时把 `velocity_x` 从 `0.0` 改为 `0.1` 后，两个 Link 沿 world 的 x 轴一起移动；摄像头安装点相对底座固定，但方向还可由 `camera_joint` 独立改变。
 - 再把速度设为 `0.0` 后模型停止；调用 Reset Service 后模型返回原点附近。
 - 保存配置后，`use_rviz:=true` 能自动恢复 Fixed Frame、RobotModel、TF 和观察视角。
-- 修改后测试汇总保持 8 tests、0 errors、0 failures、1 skipped。
+- 关节 GUI 能实时驱动摄像头旋转，最新完整测试保持无 errors 或 failures。
 
 RViz 的显示数据流和诊断边界见 [ROS 2 RViz 笔记](../../notes/concepts/ros2-rviz.md)。RViz 是可视化工具，不负责物理仿真、碰撞响应或机器人控制。
+
+## 摄像头运动学
+
+摄像头云台只有一个绕 z 轴旋转的关节变量 `yaw`。纯 Python 模块 `point_robot_ros/kinematics.py` 实现：
+
+- 正运动学：由 `yaw` 和前向距离计算目标点在 `base_link` 中的位置。
+- 简单逆运动学：由平面目标坐标通过 `atan2` 计算所需 `yaw`。
+- 对非有限输入、负距离、与安装点重合的目标和超出关节范围的目标进行拒绝。
+
+```text
+x = 0.25 + distance × cos(yaw)
+y = distance × sin(yaw)
+z = 0.28
+```
+
+6 个单元测试覆盖 0°、90°、正逆往返和非法边界。实际交叉验证中，`yaw=-0.4 rad`、距离 `1 m` 时，Python 计算与 TF2 的 `base_link → camera_forward` 都得到约 `[1.171, -0.389, 0.280]`。
+
+完整概念与证据见 [机器人运动学基础笔记](../../notes/concepts/robot-kinematics-basics.md)。当前 JointState 直接指定角度，尚未模拟电机和闭环控制。
 
 ## Topic 通信
 

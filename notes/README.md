@@ -46,6 +46,7 @@
 - 坐标树、静态与动态变换、旋转和平移：[ROS 2 TF2](concepts/ros2-tf2.md)
 - Link、Joint、几何、惯量与模型发布：[ROS 2 URDF](concepts/ros2-urdf.md)
 - Fixed Frame、RobotModel、TF 与配置复现：[ROS 2 RViz](concepts/ros2-rviz.md)
+- 关节空间、任务空间、正运动学与简单逆运动学：[机器人运动学基础](concepts/robot-kinematics-basics.md)
 - 持续扩展项目：[ROS 2 Point Robot Workspace](../projects/ros2_point_robot_ws/README.md)
 
 ## 记录与实验

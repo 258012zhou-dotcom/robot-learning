@@ -31,7 +31,7 @@
 
 ## 当前项目的动态验证
 
-系统以 `velocity_x=0.0` 启动时，机器人停在 world 原点。运行时把速度改为 `0.1` 后，位置 Topic 驱动动态 `world → base_link`，底座和摄像头在 RViz 中一起移动；两者相对位姿始终由固定关节保持。速度恢复为零后模型停止，Reset Service 会改变发布者内部位置并使模型返回原点附近。
+系统以 `velocity_x=0.0` 启动时，机器人停在 world 原点。运行时把速度改为 `0.1` 后，位置 Topic 驱动动态 `world → base_link`，底座和摄像头在 RViz 中一起移动。摄像头安装点跟随底座，`camera_joint` 角度则可由 JointState 独立改变。速度恢复为零后模型停止，Reset Service 会使模型返回原点附近。
 
 这条可视化链路覆盖了 Parameter、Topic、Service、TF2、URDF、robot_state_publisher 与 RViz，但画面正确不等于控制稳定或物理模型真实。
 
