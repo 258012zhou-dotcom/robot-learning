@@ -47,6 +47,8 @@ setup(
             'move_action_client = point_robot_ros.move_action_client:main',
             'position_tf_broadcaster = point_robot_ros.position_tf_broadcaster:main',
             'camera_pid_controller = point_robot_ros.camera_pid_controller:main',
+            'wheel_encoder_publisher = point_robot_ros.wheel_encoder_publisher:main',
+            'odometry_node = point_robot_ros.odometry_node:main',
         ],
     },
 )

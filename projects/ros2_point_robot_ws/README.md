@@ -143,6 +143,42 @@ ros2 launch point_robot_ros point_robot.launch.py \
 
 Launch 文件结构、参数传递和进程边界见 [ROS 2 Launch 笔记](../../notes/concepts/ros2-launch.md)。
 
+## 编码器与差速轮里程计
+
+`WheelTicks` 自定义消息携带采样时间与左右轮累计编码器计数。`wheel_encoder_publisher` 生成确定性的理想计数，`odometry_node` 把计数差换算成左右轮路程，再用差速轮模型累计二维位姿：
+
+```text
+wheel_encoder_publisher → /wheel_ticks → odometry_node
+                                           ├── /odom
+                                           └── odom → base_link
+```
+
+运行时不要同时启动旧的 `position_tf_broadcaster`；它发布 `world → base_link`，会与里程计节点发布的 `odom → base_link` 形成冲突的 `base_link` 父坐标系。
+
+终端一运行模拟编码器：
+
+```bash
+ros2 run point_robot_ros wheel_encoder_publisher
+```
+
+终端二运行里程计：
+
+```bash
+ros2 run point_robot_ros odometry_node
+```
+
+终端三检查 Topic 和 TF：
+
+```bash
+ros2 topic echo /odom --once
+ros2 topic info /wheel_ticks
+ros2 run tf2_ros tf2_echo odom base_link
+```
+
+默认左右轮每周期都增加 10 ticks，因此机器人沿 x 方向直行。把右轮增量改为 12 ticks 后，实际验证 `/odom` 的位置与航向同时变化，符合圆弧运动预期。12 个单元测试覆盖编码器换算、直行、旋转、圆弧、角度归一化、首帧初始化和连续累计；最新完整工作空间测试为 41 tests、0 errors、0 failures、1 skipped。
+
+当前仍是无噪声、无打滑的理想软件里程计，没有真实硬件、协方差或外部传感器校正。详细原理与证据见 [编码器与差速轮里程计笔记](../../notes/concepts/ros2-wheel-encoder-odometry.md)。
+
 ## rosbag 记录与回放
 
 位置 Topic 的实验数据保存在根项目的 `data/local/rosbags/`，该目录已被 Git 忽略。
