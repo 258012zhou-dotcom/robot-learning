@@ -93,7 +93,7 @@ ros2 param set /position_publisher velocity_x 2.0
 
 ## Launch
 
-`point_robot.launch.py` 同时启动位置发布者、订阅者和动态 TF 广播节点，并把 Launch arguments 转换为发布者的节点参数。
+`point_robot.launch.py` 同时启动位置发布者、订阅者、动态 TF 广播节点和 `robot_state_publisher`，并把 Launch arguments 转换为发布者的节点参数、把已安装的 URDF 加载为 `robot_description`。
 
 查看可用参数：
 
@@ -110,7 +110,7 @@ ros2 launch point_robot_ros point_robot.launch.py \
   timer_period:=0.2
 ```
 
-实际验证中，Launch 同时创建 `/position_publisher`、`/position_subscriber` 和 `/position_tf_broadcaster`，Topic 显示 1 个发布者和 2 个订阅者，三个发布者参数均与命令行输入一致。前台运行时使用 `Ctrl+C`，由 Launch 统一停止三个子进程。
+实际验证中，Launch 同时创建 `/position_publisher`、`/position_subscriber`、`/position_tf_broadcaster` 和 `/robot_state_publisher`。位置 Topic 显示 1 个发布者和 2 个订阅者，三个位置发布参数均与命令行输入一致。前台运行时使用 `Ctrl+C`，由 Launch 统一停止四个子进程。
 
 Launch 文件结构、参数传递和进程边界见 [ROS 2 Launch 笔记](../../notes/concepts/ros2-launch.md)。
 
@@ -155,6 +155,60 @@ ros2 run tf2_ros tf2_echo world base_link
 - `view_frames` 显示 `world → base_link`，平均发布频率约为 `10.196 Hz`，缓存跨度约为 `5.1 s`。
 
 TF2 的坐标树、变换公式、时间语义与当前边界见 [ROS 2 TF2 笔记](../../notes/concepts/ros2-tf2.md)。
+
+## URDF 机器人模型
+
+`urdf/point_robot.urdf` 描述一个蓝色箱体底座和固定安装的摄像头：
+
+```text
+base_link
+└── camera_joint (fixed)
+    └── camera_link
+```
+
+底座尺寸为 `0.6 × 0.4 × 0.2 m`，摄像头尺寸为 `0.12 × 0.08 × 0.08 m`。`camera_joint` 将摄像头放在底座前方 `0.25 m`、上方 `0.28 m`。两个 Link 都包含 visual、collision、mass 和 inertia。
+
+URDF 由 `setup.py` 安装到功能包共享目录。Launch 从安装目录读取文件，并通过标准参数 `robot_description` 交给 `robot_state_publisher`。
+
+```bash
+check_urdf src/point_robot_ros/urdf/point_robot.urdf
+ros2 launch point_robot_ros point_robot.launch.py
+ros2 run tf2_ros tf2_echo base_link camera_link
+ros2 run tf2_ros tf2_echo world camera_link
+```
+
+实际验证结果：
+
+- `check_urdf` 成功解析，根 Link 为 `base_link`，子 Link 为 `camera_link`。
+- 固定变换 `base_link → camera_link` 为 `[0.25, 0, 0.28]`，时间显示为 `0.0`。
+- TF2 能组合动态与静态关系，得到连续更新的 `world → camera_link`。
+- `/tf` 发布端来自动态广播节点和 `robot_state_publisher`，`/tf_static` 由 `robot_state_publisher` 发布固定关节。
+- 修改后测试汇总为 8 tests、0 errors、0 failures、1 skipped。
+
+模型结构和发布流程见 [ROS 2 URDF 笔记](../../notes/concepts/ros2-urdf.md)。模型外观尚待 RViz 实际检查。
+
+## RViz 可视化
+
+保存的配置位于 `rviz/point_robot.rviz`，固定坐标系为 `world`，并启用了 Grid、RobotModel 和 TF。配置由 `setup.py` 安装到功能包共享目录，可通过 Launch 参数选择是否启动 GUI：
+
+```bash
+ros2 launch point_robot_ros point_robot.launch.py \
+  velocity_x:=0.0 \
+  use_rviz:=true
+```
+
+`use_rviz` 默认为 `false`，因此后台运行和自动测试不会强制打开图形界面。
+
+实际验证结果：
+
+- RViz 正确显示蓝色 `base_link` 和深灰色 `camera_link`。
+- TF 显示为 `world → base_link → camera_link`，坐标轴与名称可见。
+- 运行时把 `velocity_x` 从 `0.0` 改为 `0.1` 后，两个 Link 保持固定相对关系并沿 world 的 x 轴一起移动。
+- 再把速度设为 `0.0` 后模型停止；调用 Reset Service 后模型返回原点附近。
+- 保存配置后，`use_rviz:=true` 能自动恢复 Fixed Frame、RobotModel、TF 和观察视角。
+- 修改后测试汇总保持 8 tests、0 errors、0 failures、1 skipped。
+
+RViz 的显示数据流和诊断边界见 [ROS 2 RViz 笔记](../../notes/concepts/ros2-rviz.md)。RViz 是可视化工具，不负责物理仿真、碰撞响应或机器人控制。
 
 ## Topic 通信
 

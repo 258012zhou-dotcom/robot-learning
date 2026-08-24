@@ -18,6 +18,14 @@ setup(
             os.path.join("share", package_name, "launch"),
             glob("launch/*.launch.py"),
         ),
+        (
+            os.path.join("share", package_name, "urdf"),
+            glob("urdf/*.urdf"),
+        ),
+        (
+            os.path.join("share", package_name, "rviz"),
+            glob("rviz/*.rviz"),
+        ),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
