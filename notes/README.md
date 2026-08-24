@@ -47,6 +47,7 @@
 - Link、Joint、几何、惯量与模型发布：[ROS 2 URDF](concepts/ros2-urdf.md)
 - Fixed Frame、RobotModel、TF 与配置复现：[ROS 2 RViz](concepts/ros2-rviz.md)
 - 关节空间、任务空间、正运动学与简单逆运动学：[机器人运动学基础](concepts/robot-kinematics-basics.md)
+- P、PI、PD、稳定性、限幅与 ROS 2 闭环控制：[动力学与 PID 控制](concepts/rigid-motion-dynamics-control.md)
 - 持续扩展项目：[ROS 2 Point Robot Workspace](../projects/ros2_point_robot_ws/README.md)
 
 ## 记录与实验

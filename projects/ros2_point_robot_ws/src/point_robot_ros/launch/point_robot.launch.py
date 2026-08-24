@@ -5,11 +5,10 @@ from pathlib import Path
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
+from launch.conditions import IfCondition, LaunchConfigurationEquals
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
-from launch.conditions import IfCondition
-from launch.conditions import UnlessCondition
 
 
 def generate_launch_description() -> LaunchDescription:
@@ -24,7 +23,10 @@ def generate_launch_description() -> LaunchDescription:
     velocity_x = LaunchConfiguration("velocity_x")
     timer_period = LaunchConfiguration("timer_period")
     use_rviz = LaunchConfiguration("use_rviz")
-    use_joint_gui = LaunchConfiguration("use_joint_gui")
+    target_yaw = LaunchConfiguration("target_yaw")
+    kp = LaunchConfiguration("kp")
+    ki = LaunchConfiguration("ki")
+    kd = LaunchConfiguration("kd")
     position_publisher = Node(
         package="point_robot_ros",
         executable="position_publisher",
@@ -85,12 +87,16 @@ def generate_launch_description() -> LaunchDescription:
         ],
         condition=IfCondition(use_rviz),
     )
+
     joint_state_publisher = Node(
         package="joint_state_publisher",
         executable="joint_state_publisher",
         name="joint_state_publisher",
         output="screen",
-        condition=UnlessCondition(use_joint_gui),
+        condition=LaunchConfigurationEquals(
+            "joint_control_mode",
+            "publisher",
+        ),
     )
 
     joint_state_publisher_gui = Node(
@@ -98,7 +104,41 @@ def generate_launch_description() -> LaunchDescription:
         executable="joint_state_publisher_gui",
         name="joint_state_publisher_gui",
         output="screen",
-        condition=IfCondition(use_joint_gui),
+        condition=LaunchConfigurationEquals(
+            "joint_control_mode",
+            "gui",
+        ),
+    )
+
+    camera_pid_controller = Node(
+        package="point_robot_ros",
+        executable="camera_pid_controller",
+        name="camera_pid_controller",
+        output="screen",
+        parameters=[
+            {
+                "target_yaw": ParameterValue(
+                    target_yaw,
+                    value_type=float,
+                ),
+                "kp": ParameterValue(
+                    kp,
+                    value_type=float,
+                ),
+                "ki": ParameterValue(
+                    ki,
+                    value_type=float,
+                ),
+                "kd": ParameterValue(
+                    kd,
+                    value_type=float,
+                ),
+            }
+        ],
+        condition=LaunchConfigurationEquals(
+            "joint_control_mode",
+            "pid",
+        ),
     )
 
     return LaunchDescription(
@@ -124,9 +164,30 @@ def generate_launch_description() -> LaunchDescription:
                 description="Start RViz with the saved configuration",
             ),
             DeclareLaunchArgument(
-                "use_joint_gui",
-                default_value="false",
-                description="Start the joint state publisher GUI",
+                "joint_control_mode",
+                default_value="publisher",
+                description="Joint source: publisher, gui, or pid",
+                choices=["publisher", "gui", "pid"],
+            ),
+            DeclareLaunchArgument(
+                "target_yaw",
+                default_value="1.0",
+                description="Target camera yaw in radians",
+            ),
+            DeclareLaunchArgument(
+                "kp",
+                default_value="2.0",
+                description="PID proportional gain",
+            ),
+            DeclareLaunchArgument(
+                "ki",
+                default_value="0.0",
+                description="PID integral gain",
+            ),
+            DeclareLaunchArgument(
+                "kd",
+                default_value="0.0",
+                description="PID derivative gain",
             ),
             position_publisher,
             position_subscriber,
@@ -134,6 +195,7 @@ def generate_launch_description() -> LaunchDescription:
             robot_state_publisher,
             joint_state_publisher,
             joint_state_publisher_gui,
+            camera_pid_controller,
             rviz,
         ]
     )

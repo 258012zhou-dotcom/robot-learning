@@ -48,7 +48,7 @@ colcon test-result --verbose
 - 版权头测试按模板默认跳过。
 - `point_robot_interfaces` 的 CMake lint 和 XML schema 检查通过。
 - `test_position_topic_launch.py` 会自动启动位置发布者，并由临时测试节点通过 DDS 订阅位置 Topic。
-- 使用独立的 `ROS_DOMAIN_ID=132` 运行后，最新完整测试由实际 WSL 终端确认 0 errors、0 failures；其中包含 6 个运动学单元测试。
+- 使用独立的 `ROS_DOMAIN_ID=132` 运行后，最新完整测试汇总为 29 tests、0 errors、0 failures、1 skipped；其中包含 6 个运动学单元测试和 15 个控制单元测试。
 
 其中代码规范测试不代表通信功能正确；新增的集成测试验证了位置 Topic 能收到至少三条消息、`y` 保持为零、`x` 递增且相邻步长符合启动参数。Service、Action 和完整 Launch 系统目前仍以手动运行验证为主。
 
@@ -110,7 +110,36 @@ ros2 launch point_robot_ros point_robot.launch.py \
   timer_period:=0.2
 ```
 
-`use_joint_gui` 默认为 `false`，此时无界面的 `joint_state_publisher` 发布默认关节角；设置为 `true` 时改为启动 `joint_state_publisher_gui`。`IfCondition` 与 `UnlessCondition` 保证两者互斥，避免同时向 `/joint_states` 发布冲突状态。前台运行时使用 `Ctrl+C`，由 Launch 统一清理子进程。
+`joint_control_mode` 决定 `/joint_states` 的唯一来源，只允许三种取值：`publisher` 使用无界面的默认发布器，`gui` 使用滑块界面，`pid` 使用摄像头 PID 控制节点。单一模式参数从结构上避免多个节点同时控制 `camera_joint`。
+
+例如启动 PID 控制和 RViz：
+
+```bash
+ros2 launch point_robot_ros point_robot.launch.py \
+  joint_control_mode:=pid \
+  target_yaw:=0.8 \
+  use_rviz:=true
+```
+
+前台运行时使用 `Ctrl+C`，由 Launch 统一清理子进程。
+
+## PID 基础控制
+
+`control.py` 包含限幅 P 控制器、有状态 PID 控制器，以及一阶和二阶关节仿真。测试分别验证控制方向、速度限幅、离散稳定性、积分累计与限幅、稳态误差消除，以及 D 项对惯性关节的阻尼作用。
+
+`camera_pid_controller` 把 PID 接入 ROS 2：节点读取目标角和启动增益，生成受限速度命令，更新软件模拟的 `camera_joint`，并发布 `/joint_states`。这仍是软件模型，不是对真实电机的控制。
+
+```bash
+ros2 launch point_robot_ros point_robot.launch.py \
+  joint_control_mode:=pid \
+  target_yaw:=0.8 \
+  kp:=2.0 \
+  ki:=0.0 \
+  kd:=0.0 \
+  use_rviz:=true
+```
+
+当前无扰动的一阶关节默认适合从纯 P 开始；I 用于补偿持续偏差但可能引入超调，D 主要用于带惯性的系统且需要注意噪声。关节角受 URDF 的正负 1.5708 rad 范围约束，速度命令也受到限幅。
 
 Launch 文件结构、参数传递和进程边界见 [ROS 2 Launch 笔记](../../notes/concepts/ros2-launch.md)。
 

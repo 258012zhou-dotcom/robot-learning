@@ -9,6 +9,7 @@
 
   <depend>rclpy</depend>
   <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
   <depend>std_srvs</depend>
   <depend>point_robot_interfaces</depend>
   <depend>rcl_interfaces</depend>
