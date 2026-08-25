@@ -48,7 +48,7 @@ colcon test-result --verbose
 - 版权头测试按模板默认跳过。
 - `point_robot_interfaces` 的 CMake lint 和 XML schema 检查通过。
 - `test_position_topic_launch.py` 会自动启动位置发布者，并由临时测试节点通过 DDS 订阅位置 Topic。
-- 使用独立的 `ROS_DOMAIN_ID=132` 运行后，最新完整测试汇总为 50 tests、0 errors、0 failures、1 skipped；其中包含运动学、控制、编码器、里程计和模拟传感器单元测试。
+- 使用独立的 `ROS_DOMAIN_ID=132` 运行后，最新完整测试汇总为 55 tests、0 errors、0 failures、1 skipped；其中包含运动学、控制、编码器、里程计、模拟传感器和状态估计单元测试。
 
 其中代码规范测试不代表通信功能正确；新增的集成测试验证了位置 Topic 能收到至少三条消息、`y` 保持为零、`x` 递增且相邻步长符合启动参数。Service、Action 和完整 Launch 系统目前仍以手动运行验证为主。
 
@@ -175,7 +175,7 @@ ros2 topic info /wheel_ticks
 ros2 run tf2_ros tf2_echo odom base_link
 ```
 
-默认左右轮每周期都增加 10 ticks，因此机器人沿 x 方向直行。把右轮增量改为 12 ticks 后，实际验证 `/odom` 的位置与航向同时变化，符合圆弧运动预期。12 个单元测试覆盖编码器换算、直行、旋转、圆弧、角度归一化、首帧初始化和连续累计；最新完整工作空间测试为 50 tests、0 errors、0 failures、1 skipped。
+默认左右轮每周期都增加 10 ticks，因此机器人沿 x 方向直行。把右轮增量改为 12 ticks 后，实际验证 `/odom` 的位置与航向同时变化，符合圆弧运动预期。12 个单元测试覆盖编码器换算、直行、旋转、圆弧、角度归一化、首帧初始化和连续累计；最新完整工作空间测试为 55 tests、0 errors、0 failures、1 skipped。
 
 当前仍是无噪声、无打滑的理想软件里程计，没有真实硬件、协方差或外部传感器校正。详细原理与证据见 [编码器与差速轮里程计笔记](../../notes/concepts/ros2-wheel-encoder-odometry.md)。
 
@@ -203,6 +203,24 @@ ros2 launch point_robot_ros point_robot.launch.py \
 ```
 
 9 个单元测试验证图像字节布局、移动条纹、非法尺寸、LiDAR 角度索引和非法扫描参数。相机与 LiDAR 还通过 Topic、QoS、TF 和 RViz 完成实际运行验证。当前数据是确定性的理想软件模式，不包含真实场景渲染、噪声、遮挡、运动畸变或硬件标定。详细原理见 [摄像头与二维激光雷达笔记](../../notes/concepts/ros2-camera-lidar-basics.md)。
+
+## 状态估计基础
+
+`ScalarKalmanFilter` 用一维位置模型验证状态估计的 Prediction 和 Correction。估计器保存位置估计、方差、最近一次 Innovation 和 Kalman Gain，并通过 `Q` 与 `R` 表达运动模型和位置观测的不确定性。
+
+```bash
+ros2 run point_robot_ros state_estimation_demo
+```
+
+演示中真实速度为 `1.0 m/s`，带偏差的运动模型使用 `0.9 m/s`，位置观测包含确定性正负噪声。实际结果为：
+
+```text
+Measurement RMSE: 0.5060
+Prediction RMSE:  0.6205
+Kalman RMSE:      0.2538
+```
+
+5 个单元测试覆盖预测、方差增长、数值更新、测量噪声对 Gain 的影响、重复观测和非法不确定性。当前实现不是 ROS 多传感器融合节点，也没有扩展到二维 EKF、IMU 或 SLAM；目标是建立能使用和排查现成融合系统所需的基础。详细说明见 [状态估计与一维 Kalman Filter](../../notes/concepts/state-estimation-kalman-basics.md)。
 
 ## rosbag 记录与回放
 

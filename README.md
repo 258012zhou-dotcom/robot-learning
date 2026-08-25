@@ -59,6 +59,7 @@
 - [x] 完成 P、PI、PD 基础验证，并用 ROS 2 PID 节点驱动摄像头关节
 - [x] 完成编码器换算、差速轮里程计、`/odom` 和 `odom → base_link` 第一轮验证
 - [x] 完成模拟相机、CameraInfo、光学坐标系和二维 LaserScan 的第一轮验证
+- [x] 完成 Prediction、Correction、P/Q/R 和一维 Kalman Filter 的第一轮验证
 
 `[x]` 表示完成基础学习并至少实际验证一次，不代表熟练或精通。
 
@@ -72,7 +73,7 @@
 - `projects/cpp_point_robot`：验证 C++17 点机器人函数、CMake 构建和 CTest。
 - `projects/python_concurrency_demo`：验证多进程与 `asyncio` 的基本运行边界。
 - `projects/tcp_sensor_demo`：验证本机 TCP 上的 JSON 位置样本与确认消息。
-- `projects/ros2_point_robot_ws`：阶段 2 持续扩展的 ROS 2 Humble 点机器人工作空间，已包含通信接口、Launch、rosbag、动态 TF、URDF、RViz、单自由度摄像头运动学、PID 基础控制、差速轮里程计，以及模拟相机和二维 LiDAR。
+- `projects/ros2_point_robot_ws`：阶段 2 持续扩展的 ROS 2 Humble 点机器人工作空间，已包含通信接口、Launch、rosbag、动态 TF、URDF、RViz、单自由度摄像头运动学、PID 基础控制、差速轮里程计、模拟相机、二维 LiDAR 和一维状态估计。
 
 ## 学习原则
 
