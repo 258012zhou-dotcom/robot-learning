@@ -49,6 +49,8 @@ setup(
             'camera_pid_controller = point_robot_ros.camera_pid_controller:main',
             'wheel_encoder_publisher = point_robot_ros.wheel_encoder_publisher:main',
             'odometry_node = point_robot_ros.odometry_node:main',
+            'synthetic_camera_publisher = point_robot_ros.synthetic_camera_publisher:main',
+            'synthetic_lidar_publisher = point_robot_ros.synthetic_lidar_publisher:main',
         ],
     },
 )

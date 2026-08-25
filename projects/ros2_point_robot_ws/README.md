@@ -48,7 +48,7 @@ colcon test-result --verbose
 - 版权头测试按模板默认跳过。
 - `point_robot_interfaces` 的 CMake lint 和 XML schema 检查通过。
 - `test_position_topic_launch.py` 会自动启动位置发布者，并由临时测试节点通过 DDS 订阅位置 Topic。
-- 使用独立的 `ROS_DOMAIN_ID=132` 运行后，最新完整测试汇总为 29 tests、0 errors、0 failures、1 skipped；其中包含 6 个运动学单元测试和 15 个控制单元测试。
+- 使用独立的 `ROS_DOMAIN_ID=132` 运行后，最新完整测试汇总为 50 tests、0 errors、0 failures、1 skipped；其中包含运动学、控制、编码器、里程计和模拟传感器单元测试。
 
 其中代码规范测试不代表通信功能正确；新增的集成测试验证了位置 Topic 能收到至少三条消息、`y` 保持为零、`x` 递增且相邻步长符合启动参数。Service、Action 和完整 Launch 系统目前仍以手动运行验证为主。
 
@@ -175,9 +175,34 @@ ros2 topic info /wheel_ticks
 ros2 run tf2_ros tf2_echo odom base_link
 ```
 
-默认左右轮每周期都增加 10 ticks，因此机器人沿 x 方向直行。把右轮增量改为 12 ticks 后，实际验证 `/odom` 的位置与航向同时变化，符合圆弧运动预期。12 个单元测试覆盖编码器换算、直行、旋转、圆弧、角度归一化、首帧初始化和连续累计；最新完整工作空间测试为 41 tests、0 errors、0 failures、1 skipped。
+默认左右轮每周期都增加 10 ticks，因此机器人沿 x 方向直行。把右轮增量改为 12 ticks 后，实际验证 `/odom` 的位置与航向同时变化，符合圆弧运动预期。12 个单元测试覆盖编码器换算、直行、旋转、圆弧、角度归一化、首帧初始化和连续累计；最新完整工作空间测试为 50 tests、0 errors、0 failures、1 skipped。
 
 当前仍是无噪声、无打滑的理想软件里程计，没有真实硬件、协方差或外部传感器校正。详细原理与证据见 [编码器与差速轮里程计笔记](../../notes/concepts/ros2-wheel-encoder-odometry.md)。
+
+## 模拟相机与二维 LiDAR
+
+`synthetic_camera_publisher` 发布 `320 × 240 mono8` 灰度图和理想 CameraInfo。图像包含灰度渐变和移动白条，两个 Topic 使用相同时间戳与 `camera_optical_frame`：
+
+```text
+/camera/image_raw   [sensor_msgs/msg/Image]
+/camera/camera_info [sensor_msgs/msg/CameraInfo]
+```
+
+`camera_optical_frame` 通过固定关节连接到 `camera_link`，将机器人常规坐标转换为 x 向右、y 向下、z 向前的相机光学坐标。RViz Image 最初因请求 `RELIABLE` 而与 `BEST_EFFORT` 发布者不兼容；把 Reliability Policy 改为 Best Effort 后图像正常显示。
+
+`synthetic_lidar_publisher` 在 `/scan` 发布 181 束、-90° 到 +90° 的 `sensor_msgs/msg/LaserScan`。`laser_frame` 固定安装在 `base_link` 的 `[0.05, 0, 0.24]`，RViz 能显示正前方 1.5 m、左前方 2.0 m 和其余方向 4.0 m 的扫描点。
+
+Launch 参数按需启动传感器：
+
+```bash
+ros2 launch point_robot_ros point_robot.launch.py \
+  velocity_x:=0.0 \
+  use_camera:=true \
+  use_lidar:=true \
+  use_rviz:=true
+```
+
+9 个单元测试验证图像字节布局、移动条纹、非法尺寸、LiDAR 角度索引和非法扫描参数。相机与 LiDAR 还通过 Topic、QoS、TF 和 RViz 完成实际运行验证。当前数据是确定性的理想软件模式，不包含真实场景渲染、噪声、遮挡、运动畸变或硬件标定。详细原理见 [摄像头与二维激光雷达笔记](../../notes/concepts/ros2-camera-lidar-basics.md)。
 
 ## rosbag 记录与回放
 
@@ -223,15 +248,17 @@ TF2 的坐标树、变换公式、时间语义与当前边界见 [ROS 2 TF2 笔�
 
 ## URDF 机器人模型
 
-`urdf/point_robot.urdf` 描述一个蓝色箱体底座和可绕 z 轴转动的摄像头：
+`urdf/point_robot.urdf` 描述一个蓝色箱体底座、可绕 z 轴转动的摄像头，以及固定安装的二维激光雷达：
 
 ```text
 base_link
-└── camera_joint (revolute, -90° to 90°)
-    └── camera_link
+├── camera_joint (revolute, -90° to 90°)
+│   └── camera_link
+│       └── camera_optical_frame
+└── laser_frame
 ```
 
-底座尺寸为 `0.6 × 0.4 × 0.2 m`，摄像头尺寸为 `0.12 × 0.08 × 0.08 m`。`camera_joint` 的安装点位于底座前方 `0.25 m`、上方 `0.28 m`，旋转范围约为 `-1.571～1.571 rad`。两个 Link 都包含 visual、collision、mass 和 inertia。
+底座尺寸为 `0.6 × 0.4 × 0.2 m`，摄像头尺寸为 `0.12 × 0.08 × 0.08 m`。`camera_joint` 的安装点位于底座前方 `0.25 m`、上方 `0.28 m`，旋转范围约为 `-1.571～1.571 rad`。`camera_optical_frame` 提供图像算法使用的光学坐标约定；圆柱形 `laser_frame` 位于底座前方 `0.05 m`、上方 `0.24 m`。
 
 URDF 由 `setup.py` 安装到功能包共享目录。Launch 从安装目录读取文件，并通过标准参数 `robot_description` 交给 `robot_state_publisher`。
 
@@ -244,7 +271,7 @@ ros2 run tf2_ros tf2_echo world camera_link
 
 实际验证结果：
 
-- `check_urdf` 成功解析，根 Link 为 `base_link`，子 Link 为 `camera_link`。
+- `check_urdf` 成功解析，根 Link 为 `base_link`，分支包含 `camera_link → camera_optical_frame` 和 `laser_frame`。
 - `/joint_states` 正确发布 `camera_joint` 的角度，`robot_state_publisher` 据此更新 `base_link → camera_link`。
 - 关节角约为 `1.571 rad` 时，Yaw 为 90°，四元数约为 `[0, 0, 0.707, 0.707]`。
 - 摄像头安装点平移保持 `[0.25, 0, 0.28]`，方向随关节角变化。

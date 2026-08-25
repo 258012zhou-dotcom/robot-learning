@@ -49,6 +49,7 @@
 - 关节空间、任务空间、正运动学与简单逆运动学：[机器人运动学基础](concepts/robot-kinematics-basics.md)
 - P、PI、PD、稳定性、限幅与 ROS 2 闭环控制：[动力学与 PID 控制](concepts/rigid-motion-dynamics-control.md)
 - 累计编码器计数、差速轮运动模型、`/odom` 与 TF：[ROS 2 编码器与差速轮里程计](concepts/ros2-wheel-encoder-odometry.md)
+- Image、CameraInfo、LaserScan、光学坐标系与传感器 QoS：[ROS 2 摄像头与二维激光雷达](concepts/ros2-camera-lidar-basics.md)
 - 持续扩展项目：[ROS 2 Point Robot Workspace](../projects/ros2_point_robot_ws/README.md)
 
 ## 记录与实验

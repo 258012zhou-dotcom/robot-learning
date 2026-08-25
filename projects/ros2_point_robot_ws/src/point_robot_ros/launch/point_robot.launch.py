@@ -23,6 +23,8 @@ def generate_launch_description() -> LaunchDescription:
     velocity_x = LaunchConfiguration("velocity_x")
     timer_period = LaunchConfiguration("timer_period")
     use_rviz = LaunchConfiguration("use_rviz")
+    use_camera = LaunchConfiguration("use_camera")
+    use_lidar = LaunchConfiguration("use_lidar")
     target_yaw = LaunchConfiguration("target_yaw")
     kp = LaunchConfiguration("kp")
     ki = LaunchConfiguration("ki")
@@ -141,6 +143,22 @@ def generate_launch_description() -> LaunchDescription:
         ),
     )
 
+    synthetic_camera_publisher = Node(
+        package="point_robot_ros",
+        executable="synthetic_camera_publisher",
+        name="synthetic_camera_publisher",
+        output="screen",
+        condition=IfCondition(use_camera),
+    )
+
+    synthetic_lidar_publisher = Node(
+        package="point_robot_ros",
+        executable="synthetic_lidar_publisher",
+        name="synthetic_lidar_publisher",
+        output="screen",
+        condition=IfCondition(use_lidar),
+    )
+
     return LaunchDescription(
         [
             DeclareLaunchArgument(
@@ -162,6 +180,16 @@ def generate_launch_description() -> LaunchDescription:
                 "use_rviz",
                 default_value="false",
                 description="Start RViz with the saved configuration",
+            ),
+            DeclareLaunchArgument(
+                "use_camera",
+                default_value="false",
+                description="Start the synthetic camera publisher",
+            ),
+            DeclareLaunchArgument(
+                "use_lidar",
+                default_value="false",
+                description="Start the synthetic lidar publisher",
             ),
             DeclareLaunchArgument(
                 "joint_control_mode",
@@ -196,6 +224,8 @@ def generate_launch_description() -> LaunchDescription:
             joint_state_publisher,
             joint_state_publisher_gui,
             camera_pid_controller,
+            synthetic_camera_publisher,
+            synthetic_lidar_publisher,
             rviz,
         ]
     )
