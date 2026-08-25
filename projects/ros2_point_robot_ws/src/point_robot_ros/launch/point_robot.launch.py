@@ -25,6 +25,9 @@ def generate_launch_description() -> LaunchDescription:
     use_rviz = LaunchConfiguration("use_rviz")
     use_camera = LaunchConfiguration("use_camera")
     use_lidar = LaunchConfiguration("use_lidar")
+    use_safety = LaunchConfiguration("use_safety")
+    max_linear_speed = LaunchConfiguration("max_linear_speed")
+    command_timeout = LaunchConfiguration("command_timeout")
     target_yaw = LaunchConfiguration("target_yaw")
     kp = LaunchConfiguration("kp")
     ki = LaunchConfiguration("ki")
@@ -159,6 +162,26 @@ def generate_launch_description() -> LaunchDescription:
         condition=IfCondition(use_lidar),
     )
 
+    safety_node = Node(
+        package="point_robot_ros",
+        executable="safety_node",
+        name="safety_node",
+        output="screen",
+        parameters=[
+            {
+                "max_linear_speed": ParameterValue(
+                    max_linear_speed,
+                    value_type=float,
+                ),
+                "command_timeout": ParameterValue(
+                    command_timeout,
+                    value_type=float,
+                ),
+            }
+        ],
+        condition=IfCondition(use_safety),
+    )
+
     return LaunchDescription(
         [
             DeclareLaunchArgument(
@@ -190,6 +213,21 @@ def generate_launch_description() -> LaunchDescription:
                 "use_lidar",
                 default_value="false",
                 description="Start the synthetic lidar publisher",
+            ),
+            DeclareLaunchArgument(
+                "use_safety",
+                default_value="false",
+                description="Start the velocity safety supervisor",
+            ),
+            DeclareLaunchArgument(
+                "max_linear_speed",
+                default_value="1.0",
+                description="Maximum allowed linear speed",
+            ),
+            DeclareLaunchArgument(
+                "command_timeout",
+                default_value="0.5",
+                description="Stop if commands are stale for this duration",
             ),
             DeclareLaunchArgument(
                 "joint_control_mode",
@@ -226,6 +264,7 @@ def generate_launch_description() -> LaunchDescription:
             camera_pid_controller,
             synthetic_camera_publisher,
             synthetic_lidar_publisher,
+            safety_node,
             rviz,
         ]
     )

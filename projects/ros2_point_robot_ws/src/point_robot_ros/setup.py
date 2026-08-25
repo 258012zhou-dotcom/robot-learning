@@ -52,6 +52,7 @@ setup(
             'synthetic_camera_publisher = point_robot_ros.synthetic_camera_publisher:main',
             'synthetic_lidar_publisher = point_robot_ros.synthetic_lidar_publisher:main',
             'state_estimation_demo = point_robot_ros.state_estimation_demo:main',
+            'safety_node = point_robot_ros.safety_node:main',
         ],
     },
 )

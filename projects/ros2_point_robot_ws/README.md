@@ -46,11 +46,12 @@ colcon test-result --verbose
 
 - `point_robot_ros` 的 Flake8 和 PEP 257 通过。
 - 版权头测试按模板默认跳过。
-- `point_robot_interfaces` 的 CMake lint 和 XML schema 检查通过。
+- `point_robot_interfaces` 的 CMake lint 和离线 XML 有效性检查通过。
 - `test_position_topic_launch.py` 会自动启动位置发布者，并由临时测试节点通过 DDS 订阅位置 Topic。
-- 使用独立的 `ROS_DOMAIN_ID=132` 运行后，最新完整测试汇总为 55 tests、0 errors、0 failures、1 skipped；其中包含运动学、控制、编码器、里程计、模拟传感器和状态估计单元测试。
+- `test_safety_node_launch.py` 会通过真实 ROS Topic 验证速度限幅和断流超时停车。
+- 使用独立的 `ROS_DOMAIN_ID=132` 运行后，最新完整测试汇总为 65 tests、0 errors、0 failures、1 skipped；其中包含运动学、控制、编码器、里程计、模拟传感器、状态估计和安全监督测试。
 
-其中代码规范测试不代表通信功能正确；新增的集成测试验证了位置 Topic 能收到至少三条消息、`y` 保持为零、`x` 递增且相邻步长符合启动参数。Service、Action 和完整 Launch 系统目前仍以手动运行验证为主。
+其中代码规范测试不代表通信功能正确；两个集成测试分别验证位置 Topic 和速度安全 Topic 的真实 DDS 通信。Service、Action 和完整 Launch 系统还包含手动运行验证。两个 `package.xml` 不再引用在线 Schema，避免断网时把有效 XML 误报为测试失败。
 
 为了避免日常 Domain 31 中的节点干扰，集成测试使用临时 DDS Domain：
 
@@ -175,7 +176,7 @@ ros2 topic info /wheel_ticks
 ros2 run tf2_ros tf2_echo odom base_link
 ```
 
-默认左右轮每周期都增加 10 ticks，因此机器人沿 x 方向直行。把右轮增量改为 12 ticks 后，实际验证 `/odom` 的位置与航向同时变化，符合圆弧运动预期。12 个单元测试覆盖编码器换算、直行、旋转、圆弧、角度归一化、首帧初始化和连续累计；最新完整工作空间测试为 55 tests、0 errors、0 failures、1 skipped。
+默认左右轮每周期都增加 10 ticks，因此机器人沿 x 方向直行。把右轮增量改为 12 ticks 后，实际验证 `/odom` 的位置与航向同时变化，符合圆弧运动预期。12 个单元测试覆盖编码器换算、直行、旋转、圆弧、角度归一化、首帧初始化和连续累计；最新完整工作空间测试为 65 tests、0 errors、0 failures、1 skipped。
 
 当前仍是无噪声、无打滑的理想软件里程计，没有真实硬件、协方差或外部传感器校正。详细原理与证据见 [编码器与差速轮里程计笔记](../../notes/concepts/ros2-wheel-encoder-odometry.md)。
 
@@ -221,6 +222,31 @@ Kalman RMSE:      0.2538
 ```
 
 5 个单元测试覆盖预测、方差增长、数值更新、测量噪声对 Gain 的影响、重复观测和非法不确定性。当前实现不是 ROS 多传感器融合节点，也没有扩展到二维 EKF、IMU 或 SLAM；目标是建立能使用和排查现成融合系统所需的基础。详细说明见 [状态估计与一维 Kalman Filter](../../notes/concepts/state-estimation-kalman-basics.md)。
+
+## 机器人安全基础
+
+`safety_node` 位于控制器和执行器之间，只发布通过安全检查的线速度：
+
+```text
+/point_robot/cmd_vel_raw
+            ↓
+       safety_node ── /point_robot/set_emergency_stop
+            ↓
+/point_robot/cmd_vel_safe
+```
+
+启动节点：
+
+```bash
+ros2 run point_robot_ros safety_node \
+  --ros-args \
+  -p max_linear_speed:=1.0 \
+  -p command_timeout:=0.5
+```
+
+实际验证包括：绝对值超过 `1.0` 的速度被限幅；停止发送原始指令 `0.5 s` 后安全输出归零；急停激活后输出立即归零；解除急停不会恢复旧指令，必须收到新指令才允许再次运动。总 Launch 通过 `use_safety:=true` 启动该节点。
+
+9 个纯 Python 单元测试覆盖限幅、超时、急停、恢复和非法配置；1 个 ROS 集成测试验证真实 Topic 通信。当前急停是软件级机制，不能处理进程崩溃、操作系统失效、驱动器故障或断电场景，也不能替代真实机器人的硬件急停和驱动器使能回路。详细说明见 [ROS 2 机器人安全基础](../../notes/concepts/ros2-robot-safety-basics.md)。
 
 ## rosbag 记录与回放
 
