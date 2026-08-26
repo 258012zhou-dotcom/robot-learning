@@ -62,6 +62,7 @@
 - [x] 完成 Prediction、Correction、P/Q/R 和一维 Kalman Filter 的第一轮验证
 - [x] 完成指令限幅、通信超时停车、软件急停和安全 ROS 集成测试
 - [x] 完成阶段 2 机器人软件基础的第一轮学习与项目验证
+- [x] 完成图像预处理、CNN 分类与单目标检测的第一轮实验验证
 
 `[x]` 表示完成基础学习并至少实际验证一次，不代表熟练或精通。
 
@@ -72,6 +73,9 @@
 - 实验 003：传感器线程数据流，验证 `Thread`、`Queue`、`Event`、结束标记和异常传递。
 - 实验 004：在 GPU 上训练 PyTorch 动力学模型，验证数据划分、标准化、自动微分、基线评价、误差分析、过拟合与权重衰减。
 - 实验 005：用一维点质量验证 PID 闭环控制、输出限幅、积分限幅、超调和调节时间。
+- 实验 006：验证视觉输入契约、HSV 分割、Letterbox 及边界框与相机内参同步变换。
+- 实验 007：训练小型 CNN 进行合成形状分类，并比较 IID 与旋转 OOD 表现。
+- 实验 008：训练单目标检测器，验证分类、框回归、IoU、联合成功率与 NMS 几何基础。
 - `projects/cpp_point_robot`：验证 C++17 点机器人函数、CMake 构建和 CTest。
 - `projects/python_concurrency_demo`：验证多进程与 `asyncio` 的基本运行边界。
 - `projects/tcp_sensor_demo`：验证本机 TCP 上的 JSON 位置样本与确认消息。

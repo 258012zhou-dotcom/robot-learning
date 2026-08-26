@@ -1,0 +1,14 @@
+{
+  "experiment_name": "008_single_object_detection",
+  "seed": 42,
+  "sample_count": 2000,
+  "image_size": 64,
+  "train_fraction": 0.7,
+  "validation_fraction": 0.15,
+  "batch_size": 64,
+  "epochs": 35,
+  "learning_rate": 0.001,
+  "weight_decay": 0.0001,
+  "box_loss_weight": 10.0,
+  "iou_success_threshold": 0.5
+}
