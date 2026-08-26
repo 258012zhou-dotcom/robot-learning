@@ -1,0 +1,17 @@
+{
+  "experiment_name": "007_cnn_classification",
+  "seed": 42,
+  "sample_count": 1200,
+  "challenge_sample_count": 240,
+  "image_size": 64,
+  "train_fraction": 0.7,
+  "validation_fraction": 0.15,
+  "batch_size": 64,
+  "epochs": 30,
+  "learning_rate": 0.001,
+  "weight_decay": 0.0001,
+  "rotation_augmentation": {
+    "probability": 0.5,
+    "maximum_angle_degrees": 70.0
+  }
+}
