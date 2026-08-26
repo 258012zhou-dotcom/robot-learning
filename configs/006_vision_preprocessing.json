@@ -1,0 +1,17 @@
+{
+  "experiment_name": "006_vision_preprocessing",
+  "image_size": [640, 480],
+  "model_input_size": [224, 224],
+  "background_bgr": [35, 35, 35],
+  "target_bbox": [400, 120, 120, 160],
+  "target_bgr": [0, 255, 0],
+  "lower_hsv": [50, 100, 100],
+  "upper_hsv": [70, 255, 255],
+  "minimum_area": 100.0,
+  "camera_intrinsics": {
+    "fx": 600.0,
+    "fy": 600.0,
+    "cx": 319.5,
+    "cy": 239.5
+  }
+}

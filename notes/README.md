@@ -54,12 +54,18 @@
 - 指令限幅、Watchdog、软件急停与安全恢复：[ROS 2 机器人安全基础](concepts/ros2-robot-safety-basics.md)
 - 持续扩展项目：[ROS 2 Point Robot Workspace](../projects/ros2_point_robot_ws/README.md)
 
+## 阶段 3：视觉、语言与多模态基础
+
+- 图像契约、Letterbox、坐标与内参同步、HSV 基线和模型 Tensor：[具身智能视觉输入与预处理](concepts/vision-input-preprocessing.md)
+- 综合验证：[实验 006：视觉预处理与坐标同步](../experiments/006_vision_preprocessing/README.md)
+
 ## 记录与实验
 
 - [阶段 0 检查点](weekly/2026-08-15-stage0-checkpoint.md) · [阶段 0 完成小结](weekly/2026-08-15-stage0-complete.md)
 - [实验 001：点机器人轨迹](../experiments/001_point_robot/README.md) · [实验 002：位置过滤](../experiments/002_position_filter/README.md) · [实验 003：传感器线程](../experiments/003_sensor_thread/README.md)
 - [实验 004：PyTorch 学习二维运动模型](../experiments/004_learned_dynamics/README.md)
 - [实验 005：点质量 PID 闭环控制](../experiments/005_pid_control/README.md)
+- [实验 006：视觉预处理与坐标同步](../experiments/006_vision_preprocessing/README.md)
 
 ## 故障排查
 

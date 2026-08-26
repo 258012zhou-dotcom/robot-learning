@@ -10,4 +10,4 @@ fi
 # This project does not use ROS pytest plugins.
 export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
 
-python -m pytest -q
+python -m pytest -q "$@"

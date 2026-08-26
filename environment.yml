@@ -10,3 +10,5 @@ dependencies:
   - pip:
       - --index-url https://download.pytorch.org/whl/cu130
       - torch==2.12.1
+      - --extra-index-url https://pypi.org/simple
+      - opencv-python-headless==5.0.0.93
