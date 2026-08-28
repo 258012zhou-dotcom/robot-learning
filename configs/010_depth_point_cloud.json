@@ -1,0 +1,19 @@
+{
+  "experiment_name": "010_depth_point_cloud",
+  "seed": 42,
+  "image_width": 160,
+  "image_height": 120,
+  "camera_intrinsics": {
+    "fx": 140.0,
+    "fy": 140.0,
+    "cx": 79.5,
+    "cy": 59.5
+  },
+  "background_depth_m": 4.0,
+  "square_depth_m": 1.5,
+  "circle_depth_m": 2.2,
+  "depth_noise_standard_deviation_m": 0.01,
+  "invalid_depth_fraction": 0.03,
+  "minimum_depth_m": 0.5,
+  "maximum_depth_m": 5.0
+}
