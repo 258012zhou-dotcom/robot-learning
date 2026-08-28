@@ -59,9 +59,11 @@
 - 图像契约、Letterbox、坐标与内参同步、HSV 基线和模型 Tensor：[具身智能视觉输入与预处理](concepts/vision-input-preprocessing.md)
 - 卷积、分类训练、混淆矩阵、IID/OOD 与领域随机化：[CNN 图像分类与泛化](concepts/cnn-classification-and-generalization.md)
 - 边界框、IoU、联合损失、置信度过滤、NMS 与检测评价：[目标检测基础](concepts/object-detection-foundations.md)
+- 像素 Mask、Encoder-Decoder、Skip Connection、类别不平衡与 mIoU：[语义分割基础](concepts/semantic-segmentation-foundations.md)
 - 综合验证：[实验 006：视觉预处理与坐标同步](../experiments/006_vision_preprocessing/README.md)
 - 综合验证：[实验 007：CNN 合成图像分类](../experiments/007_cnn_classification/README.md)
 - 综合验证：[实验 008：单目标图像检测](../experiments/008_single_object_detection/README.md)
+- 综合验证：[实验 009：合成图像语义分割](../experiments/009_semantic_segmentation/README.md)
 
 ## 记录与实验
 
@@ -72,6 +74,7 @@
 - [实验 006：视觉预处理与坐标同步](../experiments/006_vision_preprocessing/README.md)
 - [实验 007：CNN 合成图像分类](../experiments/007_cnn_classification/README.md)
 - [实验 008：单目标图像检测](../experiments/008_single_object_detection/README.md)
+- [实验 009：合成图像语义分割](../experiments/009_semantic_segmentation/README.md)
 
 ## 故障排查
 

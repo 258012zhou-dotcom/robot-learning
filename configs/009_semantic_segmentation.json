@@ -1,0 +1,12 @@
+{
+  "experiment_name": "009_semantic_segmentation",
+  "seed": 42,
+  "sample_count": 1200,
+  "image_size": 64,
+  "train_fraction": 0.7,
+  "validation_fraction": 0.15,
+  "batch_size": 32,
+  "epochs": 20,
+  "learning_rate": 0.001,
+  "weight_decay": 0.0001
+}
