@@ -1,0 +1,25 @@
+{
+  "experiment_name": "011_visual_representation",
+  "seed": 42,
+  "sample_count": 1200,
+  "image_size": 64,
+  "train_fraction": 0.7,
+  "validation_fraction": 0.15,
+  "batch_size": 128,
+  "embedding_dimension": 32,
+  "supervised_epochs": 25,
+  "contrastive_epochs": 40,
+  "learning_rate": 0.001,
+  "weight_decay": 0.0001,
+  "temperature": 0.2,
+  "training_augmentation": {
+    "minimum_color_gain": 0.6,
+    "maximum_color_gain": 1.4,
+    "noise_standard_deviation": 0.04
+  },
+  "appearance_challenge": {
+    "minimum_color_gain": 0.35,
+    "maximum_color_gain": 1.7,
+    "noise_standard_deviation": 0.08
+  }
+}
