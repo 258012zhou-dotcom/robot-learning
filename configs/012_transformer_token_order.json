@@ -1,0 +1,17 @@
+{
+  "experiment_name": "012_transformer_token_order",
+  "seed": 42,
+  "sequence_length": 8,
+  "vocabulary_size": 32,
+  "train_pair_count": 1000,
+  "validation_pair_count": 200,
+  "test_pair_count": 200,
+  "embedding_dimension": 32,
+  "head_count": 4,
+  "mlp_hidden_dimension": 64,
+  "layer_count": 2,
+  "batch_size": 128,
+  "epochs": 25,
+  "learning_rate": 0.001,
+  "weight_decay": 0.0001
+}

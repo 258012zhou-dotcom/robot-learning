@@ -62,12 +62,14 @@
 - 像素 Mask、Encoder-Decoder、Skip Connection、类别不平衡与 mIoU：[语义分割基础](concepts/semantic-segmentation-foundations.md)
 - Z-depth、相机内参、反投影、语义点云与坐标系：[深度图与点云基础](concepts/depth-and-point-cloud-foundations.md)
 - Encoder、Embedding、对比学习、表示坍塌与冻结评价：[视觉表示学习](concepts/visual-representation-learning.md)
+- Token、Patch、Q/K/V、Multi-Head、Mask、Transformer Block 与位置编码：[Transformer、Attention 与 Tokenization](concepts/transformer-attention-and-tokenization.md)
 - 综合验证：[实验 006：视觉预处理与坐标同步](../experiments/006_vision_preprocessing/README.md)
 - 综合验证：[实验 007：CNN 合成图像分类](../experiments/007_cnn_classification/README.md)
 - 综合验证：[实验 008：单目标图像检测](../experiments/008_single_object_detection/README.md)
 - 综合验证：[实验 009：合成图像语义分割](../experiments/009_semantic_segmentation/README.md)
 - 综合验证：[实验 010：语义 Mask 到目标点云](../experiments/010_depth_point_cloud/README.md)
 - 综合验证：[实验 011：监督与对比视觉表示](../experiments/011_visual_representation/README.md)
+- 综合验证：[实验 012：位置编码与 Token 顺序](../experiments/012_transformer_token_order/README.md)
 
 ## 记录与实验
 
@@ -81,6 +83,7 @@
 - [实验 009：合成图像语义分割](../experiments/009_semantic_segmentation/README.md)
 - [实验 010：语义 Mask 到目标点云](../experiments/010_depth_point_cloud/README.md)
 - [实验 011：监督与对比视觉表示](../experiments/011_visual_representation/README.md)
+- [实验 012：位置编码与 Token 顺序](../experiments/012_transformer_token_order/README.md)
 
 ## 故障排查
 
