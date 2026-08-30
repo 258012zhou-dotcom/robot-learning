@@ -1,0 +1,21 @@
+{
+  "experiment_name": "013_visual_transfer_learning",
+  "seed": 42,
+  "image_size": 64,
+  "source_sample_count": 1600,
+  "source_train_fraction": 0.7,
+  "source_validation_fraction": 0.15,
+  "source_epochs": 25,
+  "target_train_sample_count": 40,
+  "target_validation_sample_count": 160,
+  "target_test_sample_count": 400,
+  "trial_count": 3,
+  "embedding_dimension": 32,
+  "batch_size": 32,
+  "target_epochs": 35,
+  "source_learning_rate": 0.001,
+  "scratch_learning_rate": 0.001,
+  "encoder_finetune_learning_rate": 0.0002,
+  "head_learning_rate": 0.001,
+  "weight_decay": 0.0001
+}

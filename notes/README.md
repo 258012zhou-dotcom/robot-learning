@@ -63,6 +63,7 @@
 - Z-depth、相机内参、反投影、语义点云与坐标系：[深度图与点云基础](concepts/depth-and-point-cloud-foundations.md)
 - Encoder、Embedding、对比学习、表示坍塌与冻结评价：[视觉表示学习](concepts/visual-representation-learning.md)
 - Token、Patch、Q/K/V、Multi-Head、Mask、Transformer Block 与位置编码：[Transformer、Attention 与 Tokenization](concepts/transformer-attention-and-tokenization.md)
+- Checkpoint、Linear Probe、分层学习率、Full Fine-tuning 与灾难性遗忘：[预训练、微调与迁移评价](concepts/pretraining-and-finetuning.md)
 - 综合验证：[实验 006：视觉预处理与坐标同步](../experiments/006_vision_preprocessing/README.md)
 - 综合验证：[实验 007：CNN 合成图像分类](../experiments/007_cnn_classification/README.md)
 - 综合验证：[实验 008：单目标图像检测](../experiments/008_single_object_detection/README.md)
@@ -70,6 +71,7 @@
 - 综合验证：[实验 010：语义 Mask 到目标点云](../experiments/010_depth_point_cloud/README.md)
 - 综合验证：[实验 011：监督与对比视觉表示](../experiments/011_visual_representation/README.md)
 - 综合验证：[实验 012：位置编码与 Token 顺序](../experiments/012_transformer_token_order/README.md)
+- 综合验证：[实验 013：视觉预训练与小样本微调](../experiments/013_visual_transfer_learning/README.md)
 
 ## 记录与实验
 
@@ -84,6 +86,7 @@
 - [实验 010：语义 Mask 到目标点云](../experiments/010_depth_point_cloud/README.md)
 - [实验 011：监督与对比视觉表示](../experiments/011_visual_representation/README.md)
 - [实验 012：位置编码与 Token 顺序](../experiments/012_transformer_token_order/README.md)
+- [实验 013：视觉预训练与小样本微调](../experiments/013_visual_transfer_learning/README.md)
 
 ## 故障排查
 
