@@ -1,0 +1,18 @@
+{
+  "experiment_name": "014_vision_language_alignment",
+  "seed": 42,
+  "image_size": 32,
+  "train_samples_per_concept": 50,
+  "validation_samples_per_concept": 15,
+  "test_samples_per_concept": 30,
+  "maximum_token_count": 3,
+  "embedding_dimension": 32,
+  "text_head_count": 4,
+  "text_mlp_hidden_dimension": 64,
+  "text_layer_count": 1,
+  "epochs": 30,
+  "learning_rate": 0.001,
+  "weight_decay": 0.0001,
+  "temperature": 0.1,
+  "evaluation_batch_size": 64
+}
