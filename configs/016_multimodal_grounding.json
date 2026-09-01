@@ -1,0 +1,17 @@
+{
+  "experiment_name": "016_multimodal_grounding",
+  "seed": 42,
+  "image_size": 64,
+  "object_count": 3,
+  "preview_sample_count": 6,
+  "train_sample_count": 1200,
+  "validation_sample_count": 240,
+  "test_sample_count": 300,
+  "maximum_token_count": 4,
+  "embedding_dimension": 32,
+  "text_head_count": 4,
+  "epochs": 30,
+  "batch_size": 64,
+  "learning_rate": 0.002,
+  "weight_decay": 0.0001
+}
