@@ -146,7 +146,7 @@
 
 目标：建立观察、动作、奖励、策略和环境之间的联系。
 
-- [ ] MuJoCo 或其他轻量仿真器
+- [x] MuJoCo 或其他轻量仿真器
 - [ ] Observation、Action、Reward 和 Episode
 - [ ] Gymnasium 风格环境
 - [ ] 机器人控制频率与动作表示

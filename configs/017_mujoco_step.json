@@ -1,0 +1,9 @@
+{
+  "experiment_name": "017_mujoco_step",
+  "joint_name": "x_slide",
+  "actuator_name": "x_motor",
+  "control": 1.0,
+  "step_count": 300,
+  "viewer_control": 0.2,
+  "viewer_duration_seconds": 10.0
+}

@@ -68,6 +68,7 @@
 - [x] 完成视觉表示、Transformer、位置编码、视觉预训练与微调的第一轮实验验证
 - [x] 完成视觉语言双编码器对齐、LoRA 适配和语言条件视觉 Grounding
 - [x] 完成阶段 3：视觉、语言与多模态基础的第一轮学习与项目验证
+- [x] 进入阶段 4，并完成 MuJoCo 模型、状态和最小物理步进验证
 
 `[x]` 表示完成基础学习并至少实际验证一次，不代表熟练或精通。
 
@@ -89,6 +90,7 @@
 - 实验 014：训练小型图文双编码器，验证对称对比学习与双向语义检索。
 - 实验 015：使用 LoRA 完成语言别名适配，并与冻结模型和完整微调比较。
 - 实验 016：使用语言 Query 在空间 Visual Tokens 上定位目标，并通过单模态消融验证融合必要性。
+- 实验 017：编译单关节 MJCF 模型，验证 `qpos/qvel/ctrl`、物理步进和阻尼动力学。
 - `projects/cpp_point_robot`：验证 C++17 点机器人函数、CMake 构建和 CTest。
 - `projects/python_concurrency_demo`：验证多进程与 `asyncio` 的基本运行边界。
 - `projects/tcp_sensor_demo`：验证本机 TCP 上的 JSON 位置样本与确认消息。

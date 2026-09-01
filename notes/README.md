@@ -97,6 +97,11 @@
 - [实验 015：LoRA 语言别名适配](../experiments/015_lora_language_adaptation/README.md)
 - [实验 016：语言条件视觉目标定位](../experiments/016_multimodal_grounding/README.md)
 
+## 阶段 4：仿真与机器人学习
+
+- MJCF、`MjModel`、`MjData`、`qpos/qvel/ctrl` 与 `mj_step`：[MuJoCo 模型、状态与物理步进](concepts/mujoco-model-data-step.md)
+- 综合验证：[实验 017：MuJoCo 最小物理步进](../experiments/017_mujoco_step/README.md)
+
 ## 故障排查
 
 - [ROS 2 在 WSL 与 TUN 环境中的 DDS 发现问题](troubleshooting/ros2-dds-wsl-tun.md)
