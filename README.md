@@ -70,6 +70,7 @@
 - [x] 完成阶段 3：视觉、语言与多模态基础的第一轮学习与项目验证
 - [x] 进入阶段 4，并完成 MuJoCo 模型、状态和最小物理步进验证
 - [x] 建立 Gymnasium 到达环境，并比较随机策略与 P 控制基线
+- [x] 比较不同控制频率下的完成时间、超调和策略决策成本
 
 `[x]` 表示完成基础学习并至少实际验证一次，不代表熟练或精通。
 
@@ -93,6 +94,7 @@
 - 实验 016：使用语言 Query 在空间 Visual Tokens 上定位目标，并通过单模态消融验证融合必要性。
 - 实验 017：编译单关节 MJCF 模型，验证 `qpos/qvel/ctrl`、物理步进和阻尼动力学。
 - 实验 018：建立 Gymnasium 到达任务，验证 Episode 契约并公平比较随机策略与 P 控制策略。
+- 实验 019：保持仿真时长一致，比较控制频率对完成时间、超调、决策次数和 Reward 尺度的影响。
 - `projects/cpp_point_robot`：验证 C++17 点机器人函数、CMake 构建和 CTest。
 - `projects/python_concurrency_demo`：验证多进程与 `asyncio` 的基本运行边界。
 - `projects/tcp_sensor_demo`：验证本机 TCP 上的 JSON 位置样本与确认消息。

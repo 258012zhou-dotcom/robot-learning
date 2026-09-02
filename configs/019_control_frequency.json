@@ -1,0 +1,13 @@
+{
+  "experiment_name": "019_control_frequency",
+  "seed": 42,
+  "episode_count": 40,
+  "frame_skips": [1, 5, 10, 20],
+  "maximum_duration_seconds": 20.0,
+  "minimum_target_distance": 0.5,
+  "maximum_target_distance": 2.0,
+  "success_tolerance": 0.05,
+  "velocity_tolerance": 0.1,
+  "action_penalty_weight": 0.01,
+  "proportional_gain": 0.5
+}

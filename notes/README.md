@@ -101,7 +101,8 @@
 
 - MJCF、`MjModel`、`MjData`、`qpos/qvel/ctrl` 与 `mj_step`：[MuJoCo 模型、状态与物理步进](concepts/mujoco-model-data-step.md)
 - Observation、Action、Reward、Episode、Gymnasium 环境与策略评估：[Gymnasium 环境、Episode 与策略评估](concepts/gymnasium-environment-and-rollout.md)
-- 综合验证：[实验 017：MuJoCo 最小物理步进](../experiments/017_mujoco_step/README.md) · [实验 018：Gymnasium 到达任务与控制基线](../experiments/018_gymnasium_rollout/README.md)
+- 物理频率、控制周期、`frame_skip`、动作语义与 Reward 时间尺度：[控制频率与动作表示](concepts/control-frequency-and-action-representation.md)
+- 综合验证：[实验 017：MuJoCo 最小物理步进](../experiments/017_mujoco_step/README.md) · [实验 018：Gymnasium 到达任务与控制基线](../experiments/018_gymnasium_rollout/README.md) · [实验 019：控制频率对闭环行为的影响](../experiments/019_control_frequency/README.md)
 
 ## 故障排查
 

@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from robot_learning.gymnasium_rollout import (
+    calculate_position_overshoot,
     EpisodeResult,
     ProportionalReachPolicy,
     RandomPolicy,
@@ -143,3 +144,26 @@ def test_episode_summary_rejects_empty_input() -> None:
     """An empty result set has no meaningful mean or success rate."""
     with pytest.raises(ValueError, match="at least one Episode"):
         summarize_episodes([])
+
+
+@pytest.mark.parametrize(
+    ("positions", "target", "expected_overshoot"),
+    [
+        ([0.0, 0.8, 1.2, 1.1], 1.0, 0.2),
+        ([0.0, -0.8, -1.3, -1.1], -1.0, 0.3),
+        ([0.0, 0.4, 0.9], 1.0, 0.0),
+    ],
+)
+def test_position_overshoot_handles_both_target_directions(
+    positions: list[float],
+    target: float,
+    expected_overshoot: float,
+) -> None:
+    """Overshoot should be a non-negative distance in either direction."""
+    observations = np.zeros((len(positions), 4), dtype=np.float32)
+    observations[:, 0] = positions
+    observations[:, 2] = target
+
+    overshoot = calculate_position_overshoot(observations)
+
+    assert overshoot == pytest.approx(expected_overshoot)

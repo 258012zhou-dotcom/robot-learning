@@ -172,3 +172,33 @@ def summarize_episodes(
         ),
         mean_final_distance=float(np.mean(final_distances)),
     )
+
+
+def calculate_position_overshoot(
+    observations: np.ndarray,
+    *,
+    position_index: int = 0,
+    target_index: int = 2,
+) -> float:
+    """Return the farthest distance travelled beyond a fixed target.
+
+    Multiplying by the target direction turns leftward and rightward tasks into
+    the same positive progress axis.  This prevents negative targets from being
+    handled with a separate, easy-to-get-wrong formula.
+    """
+    observation_array = np.asarray(observations)
+    if observation_array.ndim != 2 or observation_array.shape[0] == 0:
+        raise ValueError("observations must have shape (T, observation_dimension)")
+
+    initial_position = float(observation_array[0, position_index])
+    target_position = float(observation_array[0, target_index])
+    target_displacement = target_position - initial_position
+    if target_displacement == 0.0:
+        return 0.0
+
+    direction = float(np.sign(target_displacement))
+    progress = direction * (
+        observation_array[:, position_index] - initial_position
+    )
+    overshoot = np.max(progress) - abs(target_displacement)
+    return max(0.0, float(overshoot))
