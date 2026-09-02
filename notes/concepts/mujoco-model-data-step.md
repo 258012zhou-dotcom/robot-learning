@@ -103,7 +103,7 @@ v_\infty=\frac{u}{b}=2.5\ \mathrm{m/s}
 
 - 实验是单自由度、零重力、无复杂接触的确定性仿真。
 - MuJoCo 验证不等于真实机器人验证。
-- 还没有定义 Observation、Action、Reward、Episode，也没有 Gymnasium 环境。
+- 后续实验 018 已在该模型上定义 Observation、Action、Reward、Episode 和 Gymnasium 环境；详见[Gymnasium 环境、Episode 与策略评估](gymnasium-environment-and-rollout.md)。
 - WSLg 中已验证 passive Viewer 可以正常显示该模型。Viewer 只负责显示状态，不应取代数值测试和结果记录。
 
 ## 仿真时间与显示时间

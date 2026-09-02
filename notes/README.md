@@ -100,7 +100,8 @@
 ## 阶段 4：仿真与机器人学习
 
 - MJCF、`MjModel`、`MjData`、`qpos/qvel/ctrl` 与 `mj_step`：[MuJoCo 模型、状态与物理步进](concepts/mujoco-model-data-step.md)
-- 综合验证：[实验 017：MuJoCo 最小物理步进](../experiments/017_mujoco_step/README.md)
+- Observation、Action、Reward、Episode、Gymnasium 环境与策略评估：[Gymnasium 环境、Episode 与策略评估](concepts/gymnasium-environment-and-rollout.md)
+- 综合验证：[实验 017：MuJoCo 最小物理步进](../experiments/017_mujoco_step/README.md) · [实验 018：Gymnasium 到达任务与控制基线](../experiments/018_gymnasium_rollout/README.md)
 
 ## 故障排查
 
