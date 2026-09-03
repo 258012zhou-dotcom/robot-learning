@@ -66,8 +66,19 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
             mujoco.mjtObj.mjOBJ_ACTUATOR,
             "x_motor",
         )
+        self._body_id = self._resolve_id(
+            mujoco.mjtObj.mjOBJ_BODY,
+            "point_robot",
+        )
         self._qpos_address = int(self.model.jnt_qposadr[self._joint_id])
         self._qvel_address = int(self.model.jnt_dofadr[self._joint_id])
+        self.nominal_body_mass = float(self.model.body_mass[self._body_id])
+        self._nominal_body_inertia = self.model.body_inertia[
+            self._body_id
+        ].copy()
+        self.nominal_joint_damping = float(
+            self.model.dof_damping[self._qvel_address]
+        )
         self._elapsed_steps = 0
         self._target_position = 0.0
 
@@ -123,6 +134,16 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
         mujoco.mj_resetData(self.model, self.data)
         self._elapsed_steps = 0
         options = {} if options is None else dict(options)
+
+        # Domain parameters are sampled or selected once per Episode.  Always
+        # falling back to nominal values prevents one reset leaking into the next.
+        body_mass = float(
+            options.get("body_mass", self.nominal_body_mass)
+        )
+        joint_damping = float(
+            options.get("joint_damping", self.nominal_joint_damping)
+        )
+        self._apply_domain_parameters(body_mass, joint_damping)
 
         initial_position = float(options.get("initial_position", 0.0))
         if "target_position" in options:
@@ -198,7 +219,32 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
             "distance": distance,
             "is_success": is_success,
             "elapsed_steps": self._elapsed_steps,
+            "body_mass": float(self.model.body_mass[self._body_id]),
+            "joint_damping": float(
+                self.model.dof_damping[self._qvel_address]
+            ),
         }
+
+    def _apply_domain_parameters(
+        self,
+        body_mass: float,
+        joint_damping: float,
+    ) -> None:
+        """Apply one physically consistent mass scale and joint damping value."""
+        if not np.isfinite(body_mass) or body_mass <= 0.0:
+            raise ValueError("body_mass must be a positive finite number")
+        if not np.isfinite(joint_damping) or joint_damping < 0.0:
+            raise ValueError("joint_damping must be a non-negative finite number")
+
+        mass_scale = body_mass / self.nominal_body_mass
+        self.model.body_mass[self._body_id] = body_mass
+        # A uniformly denser sphere scales mass and rotational inertia together.
+        self.model.body_inertia[self._body_id] = (
+            self._nominal_body_inertia * mass_scale
+        )
+        self.model.dof_damping[self._qvel_address] = joint_damping
+        # Recompute model constants that depend on mass before the next rollout.
+        mujoco.mj_setConst(self.model, self.data)
 
     def _sample_target_position(self) -> float:
         """Sample left or right targets while avoiding trivial near-zero goals."""

@@ -143,3 +143,101 @@ def test_reward_penalizes_distance_and_unnecessary_action() -> None:
 
     # The one-step motion is tiny; the explicit action penalty dominates here.
     assert active_reward < passive_reward
+
+
+def test_reset_applies_and_reports_episode_domain_parameters() -> None:
+    """Mass and damping should be explicit diagnostics for every Episode."""
+    environment = make_environment()
+
+    _, info = environment.reset(
+        seed=17,
+        options={
+            "target_position": 1.0,
+            "body_mass": 1.5,
+            "joint_damping": 0.7,
+        },
+    )
+
+    assert info["body_mass"] == pytest.approx(1.5)
+    assert info["joint_damping"] == pytest.approx(0.7)
+
+
+def test_heavier_body_accelerates_less_under_equal_action() -> None:
+    """Equal force over equal time should change a lighter body's speed more."""
+    light_environment = make_environment()
+    heavy_environment = make_environment()
+    reset_base = {"initial_position": 0.0, "target_position": 2.0}
+    light_environment.reset(
+        seed=18,
+        options={**reset_base, "body_mass": 0.5},
+    )
+    heavy_environment.reset(
+        seed=18,
+        options={**reset_base, "body_mass": 2.0},
+    )
+
+    light_velocity = light_environment.step(
+        np.asarray([1.0], dtype=np.float32)
+    )[0][1]
+    heavy_velocity = heavy_environment.step(
+        np.asarray([1.0], dtype=np.float32)
+    )[0][1]
+
+    assert light_velocity > heavy_velocity > 0.0
+
+
+def test_higher_damping_reduces_speed_under_repeated_action() -> None:
+    """Damping should oppose motion and lower speed under the same force."""
+    low_damping_environment = make_environment(max_episode_steps=200)
+    high_damping_environment = make_environment(max_episode_steps=200)
+    reset_base = {"initial_position": 0.0, "target_position": 2.0}
+    low_damping_environment.reset(
+        seed=19,
+        options={**reset_base, "joint_damping": 0.1},
+    )
+    high_damping_environment.reset(
+        seed=19,
+        options={**reset_base, "joint_damping": 1.0},
+    )
+
+    action = np.asarray([0.5], dtype=np.float32)
+    for _ in range(20):
+        low_observation = low_damping_environment.step(action)[0]
+        high_observation = high_damping_environment.step(action)[0]
+
+    assert low_observation[1] > high_observation[1] > 0.0
+
+
+def test_reset_without_domain_options_restores_nominal_values() -> None:
+    """A randomized Episode must not contaminate the next nominal reset."""
+    environment = make_environment()
+    environment.reset(
+        seed=20,
+        options={"body_mass": 1.8, "joint_damping": 0.9},
+    )
+
+    _, nominal_info = environment.reset(seed=20)
+
+    assert nominal_info["body_mass"] == pytest.approx(
+        environment.nominal_body_mass
+    )
+    assert nominal_info["joint_damping"] == pytest.approx(
+        environment.nominal_joint_damping
+    )
+
+
+@pytest.mark.parametrize(
+    "invalid_options",
+    [
+        {"body_mass": 0.0},
+        {"body_mass": np.inf},
+        {"joint_damping": -0.1},
+        {"joint_damping": np.nan},
+    ],
+)
+def test_reset_rejects_nonphysical_domain_parameters(invalid_options) -> None:
+    """Nonphysical domains should fail before an Episode starts."""
+    environment = make_environment()
+
+    with pytest.raises(ValueError):
+        environment.reset(seed=21, options=invalid_options)

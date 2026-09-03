@@ -103,6 +103,47 @@ class ProportionalReachPolicy:
         return np.asarray([action], dtype=np.float32)
 
 
+class ProportionalDerivativeReachPolicy:
+    """Use target error and measured velocity to produce a bounded action."""
+
+    def __init__(
+        self,
+        proportional_gain: float,
+        derivative_gain: float,
+        action_space: gym.spaces.Box,
+        *,
+        error_observation_index: int = 3,
+        velocity_observation_index: int = 1,
+    ) -> None:
+        if proportional_gain <= 0.0:
+            raise ValueError("proportional_gain must be positive")
+        if derivative_gain < 0.0:
+            raise ValueError("derivative_gain must be non-negative")
+        if not isinstance(action_space, gym.spaces.Box):
+            raise TypeError("action_space must be a Box")
+        if action_space.shape != (1,):
+            raise ValueError("policy expects one-dimensional actions")
+        self.proportional_gain = float(proportional_gain)
+        self.derivative_gain = float(derivative_gain)
+        self._low = float(action_space.low[0])
+        self._high = float(action_space.high[0])
+        self._error_index = error_observation_index
+        self._velocity_index = velocity_observation_index
+
+    def __call__(self, observation: np.ndarray) -> np.ndarray:
+        """Return ``clip(Kp * error - Kd * velocity)``."""
+        if observation.ndim != 1:
+            raise ValueError("observation must be one-dimensional")
+        target_error = float(observation[self._error_index])
+        velocity = float(observation[self._velocity_index])
+        action = (
+            self.proportional_gain * target_error
+            - self.derivative_gain * velocity
+        )
+        clipped_action = np.clip(action, self._low, self._high)
+        return np.asarray([clipped_action], dtype=np.float32)
+
+
 def run_episode(
     environment: gym.Env,
     policy: Policy,

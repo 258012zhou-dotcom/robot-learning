@@ -8,6 +8,7 @@ import pytest
 from robot_learning.gymnasium_rollout import (
     calculate_position_overshoot,
     EpisodeResult,
+    ProportionalDerivativeReachPolicy,
     ProportionalReachPolicy,
     RandomPolicy,
     run_episode,
@@ -167,3 +168,33 @@ def test_position_overshoot_handles_both_target_directions(
     overshoot = calculate_position_overshoot(observations)
 
     assert overshoot == pytest.approx(expected_overshoot)
+
+
+def test_pd_policy_uses_velocity_to_reduce_overshoot() -> None:
+    """Positive velocity should reduce action toward a positive target."""
+    environment = make_environment()
+    policy = ProportionalDerivativeReachPolicy(
+        proportional_gain=1.0,
+        derivative_gain=0.5,
+        action_space=environment.action_space,
+    )
+
+    stationary_action = policy(np.asarray([0.0, 0.0, 1.0, 1.0]))
+    moving_action = policy(np.asarray([0.0, 1.0, 1.0, 1.0]))
+
+    np.testing.assert_allclose(stationary_action, [1.0])
+    np.testing.assert_allclose(moving_action, [0.5])
+
+
+def test_pd_policy_clips_braking_action_to_control_range() -> None:
+    """Large measured velocity should not produce an unsafe unbounded command."""
+    environment = make_environment()
+    policy = ProportionalDerivativeReachPolicy(
+        proportional_gain=1.0,
+        derivative_gain=1.0,
+        action_space=environment.action_space,
+    )
+
+    action = policy(np.asarray([0.0, 5.0, 1.0, 1.0]))
+
+    np.testing.assert_allclose(action, [-1.0])

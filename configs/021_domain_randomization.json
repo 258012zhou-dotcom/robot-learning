@@ -1,0 +1,37 @@
+{
+  "experiment_name": "021_domain_randomization",
+  "frame_skip": 5,
+  "max_episode_steps": 400,
+  "minimum_target_distance": 0.5,
+  "maximum_target_distance": 2.0,
+  "success_tolerance": 0.05,
+  "velocity_tolerance": 0.1,
+  "action_penalty_weight": 0.01,
+  "candidate_proportional_gains": [0.25, 0.5, 1.0, 2.0, 3.0],
+  "candidate_derivative_gains": [0.0, 0.25, 0.5, 1.0, 2.0],
+  "selection_episode_count": 12,
+  "selection_task_seed_start": 42,
+  "selection_domain_seed": 1042,
+  "evaluation_episode_count": 60,
+  "evaluation_task_seed_start": 3000,
+  "in_distribution_domain_seed": 4000,
+  "ood_domain_seed": 5000,
+  "nominal": {
+    "body_mass": 1.0,
+    "joint_damping": 0.4
+  },
+  "randomized_range": {
+    "body_mass": [0.5, 1.5],
+    "joint_damping": [0.1, 0.8]
+  },
+  "ood_range": {
+    "body_mass": [1.6, 2.5],
+    "joint_damping": [0.01, 0.08]
+  },
+  "selection_score": {
+    "failure_penalty": 100.0,
+    "duration_weight": 1.0,
+    "overshoot_weight": 5.0,
+    "final_distance_weight": 1.0
+  }
+}

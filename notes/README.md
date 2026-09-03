@@ -103,7 +103,8 @@
 - Observation、Action、Reward、Episode、Gymnasium 环境与策略评估：[Gymnasium 环境、Episode 与策略评估](concepts/gymnasium-environment-and-rollout.md)
 - 物理频率、控制周期、`frame_skip`、动作语义与 Reward 时间尺度：[控制频率与动作表示](concepts/control-frequency-and-action-representation.md)
 - Transition、Episode 边界、数据划分、采集分布与可复现存储：[仿真轨迹数据采集](concepts/simulation-trajectory-data-collection.md)
-- 综合验证：[实验 017：MuJoCo 最小物理步进](../experiments/017_mujoco_step/README.md) · [实验 018：Gymnasium 到达任务与控制基线](../experiments/018_gymnasium_rollout/README.md) · [实验 019：控制频率对闭环行为的影响](../experiments/019_control_frequency/README.md) · [实验 020：可复现的仿真轨迹数据集](../experiments/020_simulation_dataset/README.md)
+- 领域参数、Episode 随机化、nominal/IID/OOD、评分权衡与鲁棒评估：[领域随机化与鲁棒评估](concepts/domain-randomization-and-robust-evaluation.md)
+- 综合验证：[实验 017：MuJoCo 最小物理步进](../experiments/017_mujoco_step/README.md) · [实验 018：Gymnasium 到达任务与控制基线](../experiments/018_gymnasium_rollout/README.md) · [实验 019：控制频率对闭环行为的影响](../experiments/019_control_frequency/README.md) · [实验 020：可复现的仿真轨迹数据集](../experiments/020_simulation_dataset/README.md) · [实验 021：动力学领域随机化与独立评估](../experiments/021_domain_randomization/README.md)
 
 ## 故障排查
 
