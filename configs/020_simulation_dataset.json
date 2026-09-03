@@ -1,0 +1,16 @@
+{
+  "experiment_name": "020_simulation_dataset",
+  "seed": 42,
+  "episode_count_per_policy": 20,
+  "train_fraction": 0.7,
+  "validation_fraction": 0.15,
+  "frame_skip": 5,
+  "max_episode_steps": 400,
+  "minimum_target_distance": 0.5,
+  "maximum_target_distance": 2.0,
+  "success_tolerance": 0.05,
+  "velocity_tolerance": 0.1,
+  "action_penalty_weight": 0.01,
+  "proportional_gain": 0.5,
+  "random_policy_seed_offset": 20000
+}
