@@ -241,3 +241,119 @@ def test_reset_rejects_nonphysical_domain_parameters(invalid_options) -> None:
 
     with pytest.raises(ValueError):
         environment.reset(seed=21, options=invalid_options)
+
+
+def test_action_gain_changes_the_executed_action_and_motion() -> None:
+    """A weak actuator should execute less force under the same command."""
+    nominal_environment = make_environment(frame_skip=1)
+    weak_environment = make_environment(frame_skip=1)
+    reset_options = {"initial_position": 0.0, "target_position": 2.0}
+    nominal_environment.reset(seed=22, options=reset_options)
+    weak_environment.reset(
+        seed=22,
+        options={**reset_options, "action_gain": 0.5},
+    )
+
+    nominal_observation, _, _, _, nominal_info = nominal_environment.step(
+        np.asarray([1.0], dtype=np.float32)
+    )
+    weak_observation, _, _, _, weak_info = weak_environment.step(
+        np.asarray([1.0], dtype=np.float32)
+    )
+
+    assert nominal_info["commanded_action"] == pytest.approx(1.0)
+    assert weak_info["commanded_action"] == pytest.approx(1.0)
+    assert nominal_info["executed_action"] == pytest.approx(1.0)
+    assert weak_info["executed_action"] == pytest.approx(0.5)
+    assert nominal_observation[1] > weak_observation[1] > 0.0
+
+
+def test_action_delay_executes_a_command_after_exactly_two_steps() -> None:
+    """A two-step delay should execute zero, zero, then the first command."""
+    environment = make_environment(frame_skip=1)
+    environment.reset(
+        seed=23,
+        options={
+            "initial_position": 0.0,
+            "target_position": 2.0,
+            "action_delay_steps": 2,
+        },
+    )
+    command = np.asarray([1.0], dtype=np.float32)
+
+    first = environment.step(command)
+    second = environment.step(command)
+    third = environment.step(command)
+
+    assert first[4]["executed_action"] == pytest.approx(0.0)
+    assert second[4]["executed_action"] == pytest.approx(0.0)
+    assert third[4]["executed_action"] == pytest.approx(1.0)
+    assert first[0][0] == pytest.approx(0.0)
+    assert second[0][0] == pytest.approx(0.0)
+    assert third[0][0] > 0.0
+
+
+def test_position_bias_changes_observation_but_not_true_success() -> None:
+    """A biased sensor must not make the true task look physically solved."""
+    environment = make_environment(frame_skip=1)
+    observation, reset_info = environment.reset(
+        seed=24,
+        options={
+            "initial_position": 0.0,
+            "target_position": 0.2,
+            "observation_position_bias": 0.2,
+        },
+    )
+
+    assert observation[0] == pytest.approx(0.2)
+    assert observation[3] == pytest.approx(0.0)
+    assert reset_info["position"] == pytest.approx(0.0)
+    assert reset_info["distance"] == pytest.approx(0.2)
+
+    _, _, terminated, _, step_info = environment.step(
+        np.asarray([0.0], dtype=np.float32)
+    )
+
+    assert not terminated
+    assert not step_info["is_success"]
+    assert step_info["position"] == pytest.approx(0.0)
+    assert step_info["observed_position"] == pytest.approx(0.2)
+
+
+def test_reset_restores_nominal_deployment_interface() -> None:
+    """Actuator and sensor mismatch must not leak into the next Episode."""
+    environment = make_environment()
+    environment.reset(
+        seed=25,
+        options={
+            "action_gain": 0.6,
+            "action_delay_steps": 3,
+            "observation_position_bias": -0.15,
+        },
+    )
+
+    _, nominal_info = environment.reset(seed=25)
+
+    assert nominal_info["action_gain"] == pytest.approx(1.0)
+    assert nominal_info["action_delay_steps"] == 0
+    assert nominal_info["observation_position_bias"] == pytest.approx(0.0)
+
+
+@pytest.mark.parametrize(
+    "invalid_options",
+    [
+        {"action_gain": 0.0},
+        {"action_gain": np.inf},
+        {"action_delay_steps": -1},
+        {"action_delay_steps": 1.5},
+        {"action_delay_steps": 21},
+        {"observation_position_bias": np.nan},
+        {"observation_position_bias": 1.1},
+    ],
+)
+def test_reset_rejects_invalid_deployment_mismatches(invalid_options) -> None:
+    """Invalid actuator and sensor settings should fail before simulation."""
+    environment = make_environment()
+
+    with pytest.raises(ValueError):
+        environment.reset(seed=26, options=invalid_options)

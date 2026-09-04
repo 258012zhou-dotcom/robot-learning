@@ -1,0 +1,31 @@
+{
+  "experiment_name": "022_sim_to_sim_calibration",
+  "frame_skip": 5,
+  "max_episode_steps": 400,
+  "minimum_target_distance": 0.5,
+  "maximum_target_distance": 2.0,
+  "success_tolerance": 0.05,
+  "velocity_tolerance": 0.1,
+  "action_penalty_weight": 0.01,
+  "controller": {
+    "proportional_gain": 2.0,
+    "derivative_gain": 2.0
+  },
+  "hidden_deployment_domain": {
+    "action_gain": 0.65,
+    "action_delay_steps": 3,
+    "observation_position_bias": 0.08
+  },
+  "calibration": {
+    "seed": 2200,
+    "known_initial_position": 0.0,
+    "target_position": 2.0,
+    "command": 0.5,
+    "step_count": 10,
+    "velocity_threshold": 0.000001
+  },
+  "evaluation": {
+    "episode_count": 60,
+    "seed_start": 7000
+  }
+}

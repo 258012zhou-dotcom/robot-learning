@@ -9,6 +9,7 @@ Environment contract:
 - truncated: maximum environment step count reached
 """
 
+from collections import deque
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +37,8 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
         success_tolerance: float = 0.05,
         velocity_tolerance: float = 0.10,
         action_penalty_weight: float = 0.01,
+        maximum_action_delay_steps: int = 20,
+        maximum_observation_position_bias: float = 1.0,
     ) -> None:
         super().__init__()
         _validate_environment_settings(
@@ -46,6 +49,10 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
             success_tolerance=success_tolerance,
             velocity_tolerance=velocity_tolerance,
             action_penalty_weight=action_penalty_weight,
+            maximum_action_delay_steps=maximum_action_delay_steps,
+            maximum_observation_position_bias=(
+                maximum_observation_position_bias
+            ),
         )
 
         self.model = load_mujoco_model(xml_path)
@@ -57,6 +64,10 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
         self.success_tolerance = float(success_tolerance)
         self.velocity_tolerance = float(velocity_tolerance)
         self.action_penalty_weight = float(action_penalty_weight)
+        self.maximum_action_delay_steps = maximum_action_delay_steps
+        self.maximum_observation_position_bias = float(
+            maximum_observation_position_bias
+        )
 
         self._joint_id = self._resolve_id(
             mujoco.mjtObj.mjOBJ_JOINT,
@@ -81,6 +92,10 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
         )
         self._elapsed_steps = 0
         self._target_position = 0.0
+        self._action_gain = 1.0
+        self._action_delay_steps = 0
+        self._observation_position_bias = 0.0
+        self._delayed_actions: deque[float] = deque()
 
         # Derive action bounds from MJCF instead of duplicating [-1, 1].
         actuator_range = self.model.actuator_ctrlrange[self._actuator_id]
@@ -90,16 +105,20 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
             dtype=np.float32,
         )
 
-        # Position is limited by the MJCF joint range. Velocity is unbounded.
+        # The measured position may extend beyond the physical joint range by
+        # the configured sensor-bias limit. Velocity is intentionally unbounded.
         joint_range = self.model.jnt_range[self._joint_id]
         maximum_error = max(
             abs(float(joint_range[0])),
             abs(float(joint_range[1])),
-        ) + self.maximum_target_distance
+        ) + (
+            self.maximum_target_distance
+            + self.maximum_observation_position_bias
+        )
         self.observation_space = spaces.Box(
             low=np.asarray(
                 [
-                    joint_range[0],
+                    joint_range[0] - self.maximum_observation_position_bias,
                     -np.inf,
                     -self.maximum_target_distance,
                     -maximum_error,
@@ -108,7 +127,7 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
             ),
             high=np.asarray(
                 [
-                    joint_range[1],
+                    joint_range[1] + self.maximum_observation_position_bias,
                     np.inf,
                     self.maximum_target_distance,
                     maximum_error,
@@ -145,6 +164,19 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
         )
         self._apply_domain_parameters(body_mass, joint_damping)
 
+        # Deployment mismatches also reset every Episode.  The delay queue is
+        # prefilled with zeros so a delay of N means exactly N inactive steps.
+        action_gain = float(options.get("action_gain", 1.0))
+        action_delay_steps = options.get("action_delay_steps", 0)
+        observation_position_bias = float(
+            options.get("observation_position_bias", 0.0)
+        )
+        self._apply_deployment_mismatches(
+            action_gain=action_gain,
+            action_delay_steps=action_delay_steps,
+            observation_position_bias=observation_position_bias,
+        )
+
         initial_position = float(options.get("initial_position", 0.0))
         if "target_position" in options:
             target_position = float(options["target_position"])
@@ -175,7 +207,17 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
             self.action_space.low,
             self.action_space.high,
         )
-        self.data.ctrl[self._actuator_id] = float(clipped_action[0])
+        commanded_action = float(clipped_action[0])
+        self._delayed_actions.append(commanded_action)
+        delayed_action = self._delayed_actions.popleft()
+        executed_action = float(
+            np.clip(
+                delayed_action * self._action_gain,
+                float(self.action_space.low[0]),
+                float(self.action_space.high[0]),
+            )
+        )
+        self.data.ctrl[self._actuator_id] = executed_action
 
         # One policy action remains fixed for several smaller physics steps.
         for _ in range(self.frame_skip):
@@ -184,8 +226,15 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
 
         observation = self._get_observation()
         info = self._get_info()
+        info.update(
+            {
+                "commanded_action": commanded_action,
+                "delayed_action": delayed_action,
+                "executed_action": executed_action,
+            }
+        )
         reward = -info["distance"] - self.action_penalty_weight * float(
-            clipped_action[0] ** 2
+            commanded_action ** 2
         )
         terminated = bool(info["is_success"])
         truncated = bool(
@@ -195,11 +244,17 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
 
     def _get_observation(self) -> np.ndarray:
         """Expose only the task-relevant subset of simulator state."""
-        position = float(self.data.qpos[self._qpos_address])
+        true_position = float(self.data.qpos[self._qpos_address])
+        measured_position = true_position + self._observation_position_bias
         velocity = float(self.data.qvel[self._qvel_address])
-        target_error = self._target_position - position
+        target_error = self._target_position - measured_position
         return np.asarray(
-            [position, velocity, self._target_position, target_error],
+            [
+                measured_position,
+                velocity,
+                self._target_position,
+                target_error,
+            ],
             dtype=np.float32,
         )
 
@@ -223,7 +278,45 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
             "joint_damping": float(
                 self.model.dof_damping[self._qvel_address]
             ),
+            "observed_position": position + self._observation_position_bias,
+            "action_gain": self._action_gain,
+            "action_delay_steps": self._action_delay_steps,
+            "observation_position_bias": self._observation_position_bias,
         }
+
+    def _apply_deployment_mismatches(
+        self,
+        *,
+        action_gain: float,
+        action_delay_steps: Any,
+        observation_position_bias: float,
+    ) -> None:
+        """Configure actuator and sensor mismatch for one complete Episode."""
+        if not np.isfinite(action_gain) or action_gain <= 0.0:
+            raise ValueError("action_gain must be a positive finite number")
+        if type(action_delay_steps) is not int or not (
+            0 <= action_delay_steps <= self.maximum_action_delay_steps
+        ):
+            raise ValueError(
+                "action_delay_steps must be an integer between 0 and "
+                f"{self.maximum_action_delay_steps}"
+            )
+        if (
+            not np.isfinite(observation_position_bias)
+            or abs(observation_position_bias)
+            > self.maximum_observation_position_bias
+        ):
+            raise ValueError(
+                "observation_position_bias must be finite and within "
+                f"[-{self.maximum_observation_position_bias}, "
+                f"{self.maximum_observation_position_bias}]"
+            )
+
+        self._action_gain = action_gain
+        self._action_delay_steps = action_delay_steps
+        self._observation_position_bias = observation_position_bias
+        self._delayed_actions.clear()
+        self._delayed_actions.extend([0.0] * action_delay_steps)
 
     def _apply_domain_parameters(
         self,
@@ -292,6 +385,8 @@ def _validate_environment_settings(
     success_tolerance: float,
     velocity_tolerance: float,
     action_penalty_weight: float,
+    maximum_action_delay_steps: int,
+    maximum_observation_position_bias: float,
 ) -> None:
     """Reject invalid task settings before model construction."""
     if type(frame_skip) is not int or frame_skip <= 0:
@@ -306,3 +401,15 @@ def _validate_environment_settings(
         raise ValueError("velocity_tolerance must be positive")
     if action_penalty_weight < 0.0:
         raise ValueError("action_penalty_weight must be non-negative")
+    if (
+        type(maximum_action_delay_steps) is not int
+        or maximum_action_delay_steps < 0
+    ):
+        raise ValueError("maximum_action_delay_steps must be non-negative")
+    if (
+        not np.isfinite(maximum_observation_position_bias)
+        or maximum_observation_position_bias < 0.0
+    ):
+        raise ValueError(
+            "maximum_observation_position_bias must be non-negative and finite"
+        )
