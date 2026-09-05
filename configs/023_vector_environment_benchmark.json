@@ -1,0 +1,19 @@
+{
+  "experiment_name": "023_vector_environment_benchmark",
+  "vector_environment_count": 4,
+  "warmup_vector_steps": 100,
+  "repetition_count": 3,
+  "base_seed": 9000,
+  "workloads": [
+    {
+      "name": "light",
+      "frame_skip": 5,
+      "total_transition_count": 40000
+    },
+    {
+      "name": "heavier",
+      "frame_skip": 100,
+      "total_transition_count": 8000
+    }
+  ]
+}

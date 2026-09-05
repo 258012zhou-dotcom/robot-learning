@@ -74,6 +74,8 @@
 - [x] 建立按 Episode 划分、可校验和可复现的仿真轨迹数据集
 - [x] 完成质量与阻尼领域随机化，并用 nominal、IID 和 OOD 分布独立评价
 - [x] 完成执行器、延迟和传感器失配的 Sim-to-Sim 校准与保留集迁移评价
+- [x] 完成单环境、同步向量环境和异步多进程环境的公平吞吐量比较
+- [x] 完成阶段 4：仿真与机器人学习的第一轮学习与项目验证
 
 `[x]` 表示完成基础学习并至少实际验证一次，不代表熟练或精通。
 
@@ -101,6 +103,7 @@
 - 实验 020：采集随机与 P 控制轨迹，建立 Transition schema、Episode 级数据划分和 NPZ 无损读取验证。
 - 实验 021：在 MuJoCo 中随机化质量与阻尼，比较固定环境和随机环境选择的 PD 控制器，并记录 OOD 负结果。
 - 实验 022：构造隐藏动作增益、控制延迟和位置偏置，用一次阶跃校准估计参数，并在新目标上比较直接迁移、估计补偿和 oracle。
+- 实验 023：固定总 Transition 数，比较单环境、SyncVectorEnv 和 AsyncVectorEnv 在不同环境负载下的吞吐量、初始化开销与数值一致性。
 - `projects/cpp_point_robot`：验证 C++17 点机器人函数、CMake 构建和 CTest。
 - `projects/python_concurrency_demo`：验证多进程与 `asyncio` 的基本运行边界。
 - `projects/tcp_sensor_demo`：验证本机 TCP 上的 JSON 位置样本与确认消息。

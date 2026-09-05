@@ -105,7 +105,9 @@
 - Transition、Episode 边界、数据划分、采集分布与可复现存储：[仿真轨迹数据采集](concepts/simulation-trajectory-data-collection.md)
 - 领域参数、Episode 随机化、nominal/IID/OOD、评分权衡与鲁棒评估：[领域随机化与鲁棒评估](concepts/domain-randomization-and-robust-evaluation.md)
 - Reality Gap、执行与观测失配、系统辨识、可辨识性、数据隔离与安全迁移：[Sim-to-Real 与系统校准基础](concepts/sim-to-real-calibration-foundations.md)
-- 综合验证：[实验 017：MuJoCo 最小物理步进](../experiments/017_mujoco_step/README.md) · [实验 018：Gymnasium 到达任务与控制基线](../experiments/018_gymnasium_rollout/README.md) · [实验 019：控制频率对闭环行为的影响](../experiments/019_control_frequency/README.md) · [实验 020：可复现的仿真轨迹数据集](../experiments/020_simulation_dataset/README.md) · [实验 021：动力学领域随机化与独立评估](../experiments/021_domain_randomization/README.md) · [实验 022：Sim-to-Sim 失配校准与迁移评价](../experiments/022_sim_to_sim_calibration/README.md)
+- 批量接口、同步与异步 worker、吞吐量、开销和公平基准：[向量环境与训练性能](concepts/vectorized-environments-and-training-performance.md)
+- 综合验证：[实验 017：MuJoCo 最小物理步进](../experiments/017_mujoco_step/README.md) · [实验 018：Gymnasium 到达任务与控制基线](../experiments/018_gymnasium_rollout/README.md) · [实验 019：控制频率对闭环行为的影响](../experiments/019_control_frequency/README.md) · [实验 020：可复现的仿真轨迹数据集](../experiments/020_simulation_dataset/README.md) · [实验 021：动力学领域随机化与独立评估](../experiments/021_domain_randomization/README.md) · [实验 022：Sim-to-Sim 失配校准与迁移评价](../experiments/022_sim_to_sim_calibration/README.md) · [实验 023：向量环境性能基准](../experiments/023_vector_environment_benchmark/README.md)
+- 阶段总结：[阶段 4 完成小结](weekly/2026-09-05-stage4-complete.md)
 
 ## 故障排查
 
