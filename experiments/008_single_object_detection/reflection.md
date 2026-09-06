@@ -1,5 +1,14 @@
 # 实验反思
 
+## Checkpoint 工程补充
+
+- 训练中恢复最佳权重不等于已经持久化；新入口在恢复后保存完整 checkpoint，推理直接加载该文件。
+- 新加载器先按元数据重建架构，再严格加载所有参数和缓冲区，最后统一移动设备并进入评估模式。
+- 本次验证使用临时目录与小模型；非零 LoRA 增量、全部冻结权重、输出一致性和实际推理入口均有回归检查。008/009 还人为让第二轮验证损失变差，检查保存的是第一轮最佳状态。
+- 没有重跑完整训练，没有修改历史输出；这里的验证结论不增加模型准确率或真实机器人泛化证据，也不表示学习者已独立掌握 checkpoint。
+- 文件用于推理恢复，不含优化器状态或随机数状态，不能用于逐步一致的断点续训。格式依赖当前架构代码，尚未承诺跨 PyTorch 版本或跨硬件逐位一致。
+- 实际检查：`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /home/zxd/miniconda3/envs/robot_learning/bin/python -m pytest -q tests/test_model_artifacts.py tests/test_object_detection.py tests/test_semantic_segmentation.py tests/test_peft.py`，结果为 `71 passed`。当前 PyTorch 为 `2.12.1+cu130`，CUDA 不可用，设备一致性已在 CPU 验证；CUDA 分支仅在可用时执行，本次未验证。
+
 ## 实际结果
 
 - RTX 5060 Laptop GPU 上使用 `cuda:0` 完成训练。

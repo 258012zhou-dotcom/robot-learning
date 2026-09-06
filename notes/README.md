@@ -1,6 +1,18 @@
 # 学习笔记索引
 
-笔记保存稳定知识、项目证据和知识空白，不保存原始聊天过程。阅读顺序：先看阶段 0 的工具链，再看 Python 实验基础，最后进入系统、并发、C++ 与网络。
+这里是复习入口，不是从头重学的任务清单。先选当前主题，读“快速复习”，有疑惑再看原理和小例子；实验 README 用来运行，reflection 用来查结果与局限。
+
+## 怎么看最省时间
+
+| 现在想解决的问题 | 从哪里看 |
+| --- | --- |
+| 数组维度、轨迹误差看不懂 | [NumPy 轨迹分析](concepts/numpy-trajectory-analysis.md) |
+| 不确定该检查什么、测试说明了什么 | [可靠输入边界](concepts/python-reliable-boundaries.md) · [测试与可复现性](concepts/testing-debugging-reproducibility.md) |
+| 机器人收到了命令却行为不对 | [TF2](concepts/ros2-tf2.md) · [控制](concepts/rigid-motion-dynamics-control.md) · [安全链路](concepts/ros2-robot-safety-basics.md) |
+| 模型训练好了，换进程却不能用 | [训练与评价](concepts/pytorch-training-workflow.md) · [预训练与微调](concepts/pretraining-and-finetuning.md) · [LoRA](concepts/parameter-efficient-finetuning.md) |
+| 准备学策略训练 | [环境接口](concepts/gymnasium-environment-and-rollout.md) · [轨迹数据](concepts/simulation-trajectory-data-collection.md) · [当前路线](../roadmap.md) |
+
+公式默认用可直接阅读的文本：`@` 是矩阵乘法，`×` 是乘法，`abs(x)` 是绝对值，`Σ` 表示求和，`dt` 是时间间隔。每篇会解释本地变量含义；代码里的反斜杠可能是命令换行符，不应该一概删除。复杂数学如使用 `$...$`，需在 Markdown **预览**中阅读，而不是把源码转义符当公式。
 
 ## 阶段 0：开发工具
 
@@ -23,7 +35,7 @@
 - 概率统计：[机器人学习中的概率与统计](concepts/probability-statistics-for-robotics.md)
 - 机器人数学与控制：[坐标变换、刚体运动、动力学与控制](concepts/rigid-motion-dynamics-control.md)
 
-线性代数、微积分、概率统计和数值优化已经在轨迹分析、噪声评价及 PyTorch 训练中得到初步验证。二维坐标变换和刚体运动已通过变换、求逆、组合及齐次矩阵测试；基础动力学与控制仍需后续仿真实验验证。
+数学已完成第一轮复习与部分应用：轨迹/变换、PyTorch 自动微分、PID 和一维 Kalman Filter 均有对应实验。复杂动力学、多维估计、数值优化理论仍需按任务补深，不把这些基础实验外推为全部数学掌握。
 
 ## 阶段 1：机器学习基础
 
@@ -51,7 +63,7 @@
 - 累计编码器计数、差速轮运动模型、`/odom` 与 TF：[ROS 2 编码器与差速轮里程计](concepts/ros2-wheel-encoder-odometry.md)
 - Image、CameraInfo、LaserScan、光学坐标系与传感器 QoS：[ROS 2 摄像头与二维激光雷达](concepts/ros2-camera-lidar-basics.md)
 - Prediction、Correction、Kalman Gain 与 P/Q/R：[状态估计与一维 Kalman Filter](concepts/state-estimation-kalman-basics.md)
-- 指令限幅、Watchdog、软件急停与安全恢复：[ROS 2 机器人安全基础](concepts/ros2-robot-safety-basics.md)
+- 指令限幅、Watchdog、软件急停、非法输入停车与仿真安全运动链路：[ROS 2 机器人安全基础](concepts/ros2-robot-safety-basics.md)
 - 持续扩展项目：[ROS 2 Point Robot Workspace](../projects/ros2_point_robot_ws/README.md)
 
 ## 阶段 3：视觉、语言与多模态基础
@@ -79,28 +91,10 @@
 - 综合验证：[实验 015：LoRA 语言别名适配](../experiments/015_lora_language_adaptation/README.md)
 - 综合验证：[实验 016：语言条件视觉目标定位](../experiments/016_multimodal_grounding/README.md)
 
-## 记录与实验
-
-- [阶段 0 检查点](weekly/2026-08-15-stage0-checkpoint.md) · [阶段 0 完成小结](weekly/2026-08-15-stage0-complete.md)
-- [实验 001：点机器人轨迹](../experiments/001_point_robot/README.md) · [实验 002：位置过滤](../experiments/002_position_filter/README.md) · [实验 003：传感器线程](../experiments/003_sensor_thread/README.md)
-- [实验 004：PyTorch 学习二维运动模型](../experiments/004_learned_dynamics/README.md)
-- [实验 005：点质量 PID 闭环控制](../experiments/005_pid_control/README.md)
-- [实验 006：视觉预处理与坐标同步](../experiments/006_vision_preprocessing/README.md)
-- [实验 007：CNN 合成图像分类](../experiments/007_cnn_classification/README.md)
-- [实验 008：单目标图像检测](../experiments/008_single_object_detection/README.md)
-- [实验 009：合成图像语义分割](../experiments/009_semantic_segmentation/README.md)
-- [实验 010：语义 Mask 到目标点云](../experiments/010_depth_point_cloud/README.md)
-- [实验 011：监督与对比视觉表示](../experiments/011_visual_representation/README.md)
-- [实验 012：位置编码与 Token 顺序](../experiments/012_transformer_token_order/README.md)
-- [实验 013：视觉预训练与小样本微调](../experiments/013_visual_transfer_learning/README.md)
-- [实验 014：视觉语言表示对齐](../experiments/014_vision_language_alignment/README.md)
-- [实验 015：LoRA 语言别名适配](../experiments/015_lora_language_adaptation/README.md)
-- [实验 016：语言条件视觉目标定位](../experiments/016_multimodal_grounding/README.md)
-
 ## 阶段 4：仿真与机器人学习
 
 - MJCF、`MjModel`、`MjData`、`qpos/qvel/ctrl` 与 `mj_step`：[MuJoCo 模型、状态与物理步进](concepts/mujoco-model-data-step.md)
-- Observation、Action、Reward、Episode、Gymnasium 环境与策略评估：[Gymnasium 环境、Episode 与策略评估](concepts/gymnasium-environment-and-rollout.md)
+- Observation、Action、Reward、Episode、输入验证与软限位边界、策略评估：[Gymnasium 环境、Episode 与策略评估](concepts/gymnasium-environment-and-rollout.md)
 - 物理频率、控制周期、`frame_skip`、动作语义与 Reward 时间尺度：[控制频率与动作表示](concepts/control-frequency-and-action-representation.md)
 - Transition、Episode 边界、数据划分、采集分布与可复现存储：[仿真轨迹数据采集](concepts/simulation-trajectory-data-collection.md)
 - 领域参数、Episode 随机化、nominal/IID/OOD、评分权衡与鲁棒评估：[领域随机化与鲁棒评估](concepts/domain-randomization-and-robust-evaluation.md)
@@ -109,6 +103,10 @@
 - 综合验证：[实验 017：MuJoCo 最小物理步进](../experiments/017_mujoco_step/README.md) · [实验 018：Gymnasium 到达任务与控制基线](../experiments/018_gymnasium_rollout/README.md) · [实验 019：控制频率对闭环行为的影响](../experiments/019_control_frequency/README.md) · [实验 020：可复现的仿真轨迹数据集](../experiments/020_simulation_dataset/README.md) · [实验 021：动力学领域随机化与独立评估](../experiments/021_domain_randomization/README.md) · [实验 022：Sim-to-Sim 失配校准与迁移评价](../experiments/022_sim_to_sim_calibration/README.md) · [实验 023：向量环境性能基准](../experiments/023_vector_environment_benchmark/README.md)
 - 阶段总结：[阶段 4 完成小结](weekly/2026-09-05-stage4-complete.md)
 
-## 故障排查
+## 早期实验、总结与故障排查
+
+- [阶段 0 检查点](weekly/2026-08-15-stage0-checkpoint.md) · [阶段 0 完成小结](weekly/2026-08-15-stage0-complete.md)
+- [001 点机器人轨迹](../experiments/001_point_robot/README.md) · [002 位置过滤](../experiments/002_position_filter/README.md) · [003 传感器线程](../experiments/003_sensor_thread/README.md) · [005 PID](../experiments/005_pid_control/README.md)
+- 其余实验入口已放在所属阶段，不重复堆叠；学习顺序和待办以 [roadmap.md](../roadmap.md) 为准。
 
 - [ROS 2 在 WSL 与 TUN 环境中的 DDS 发现问题](troubleshooting/ros2-dds-wsl-tun.md)

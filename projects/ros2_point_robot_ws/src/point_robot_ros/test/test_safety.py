@@ -90,3 +90,29 @@ def test_invalid_configuration_is_rejected(
             max_command=max_command,
             command_timeout=command_timeout,
         )
+
+
+@pytest.mark.parametrize("invalid", [float("nan"), float("inf"), -float("inf")])
+def test_invalid_command_discards_motion_until_fresh_command(invalid):
+    """Invalid input must stop existing motion before its timeout expires."""
+    supervisor = SafetySupervisor(max_command=1.0, command_timeout=0.5)
+    supervisor.accept_command(0.8, now=1.0)
+
+    with pytest.raises(ValueError):
+        supervisor.accept_command(invalid, now=1.1)
+
+    assert supervisor.safe_command(now=1.1) == 0.0
+    assert supervisor.safe_command(now=1.2) == 0.0
+    assert supervisor.accept_command(0.2, now=1.3)
+    assert supervisor.safe_command(now=1.3) == pytest.approx(0.2)
+
+
+def test_invalid_command_does_not_release_emergency_stop():
+    """An invalid message cannot clear a latched emergency stop."""
+    supervisor = SafetySupervisor(max_command=1.0, command_timeout=0.5)
+    supervisor.engage_emergency_stop()
+    with pytest.raises(ValueError):
+        supervisor.accept_command(float("nan"), now=1.0)
+    assert supervisor.emergency_stop_active
+    assert not supervisor.accept_command(0.2, now=1.1)
+    assert supervisor.safe_command(now=1.1) == 0.0

@@ -81,11 +81,11 @@ ros2 launch point_robot_ros point_robot.launch.py \
 - `/point_robot/position` 显示 1 个 publisher 和 1 个 subscription。
 - 节点参数实际为 `initial_x=2.0`、`velocity_x=1.0`、`timer_period=0.2`。
 - 发布者和订阅者显示一致的位置序列。
-- Flake8 曾发现两组重复导入；删除重复导入后恢复为 7 tests、0 failures、1 skipped。
+- `test_position_topic_launch.py` 现在会自动启动发布者，创建临时订阅者，在 5 秒内接收至少 3 条消息，并检查 x 递增、相邻步长约为 0.05。它验证实际 Topic 通信，不只是代码格式。
 
 ## 重要边界
 
 - 同一 Topic 可以合法存在多个发布者；若意外启动两套系统，订阅者会收到交错的数据流。
 - 节点同名也可能同时存在，使 CLI 查询和日志判断变得混乱。
 - 前台运行 Launch 时使用 `Ctrl+C`，让 Launch 统一清理子进程；不要只结束父进程后留下孤立节点。
-- 当前自动测试主要检查代码规范，还没有自动证明两个节点能通过 Topic 通信；这是下一步最小集成测试要解决的问题。
+- 自动通信测试使用受控参数与临时订阅者，不等于验证所有 Launch 分支、硬件或网络场景。具体结构见[最小集成测试](ros2-integration-testing.md)。

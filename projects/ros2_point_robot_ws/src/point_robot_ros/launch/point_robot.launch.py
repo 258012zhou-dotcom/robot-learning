@@ -5,7 +5,9 @@ from pathlib import Path
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.conditions import IfCondition, LaunchConfigurationEquals
+from launch.conditions import (
+    IfCondition, LaunchConfigurationEquals, UnlessCondition,
+)
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -37,6 +39,7 @@ def generate_launch_description() -> LaunchDescription:
         executable="position_publisher",
         name="position_publisher",
         output="screen",
+        condition=UnlessCondition(use_safety),
         parameters=[
             {
                 "initial_x": ParameterValue(
@@ -182,6 +185,28 @@ def generate_launch_description() -> LaunchDescription:
         condition=IfCondition(use_safety),
     )
 
+    # Exactly one position source runs: the original parameter lesson, or a
+    # simulated actuator driven through cmd_vel_raw -> safety -> cmd_vel_safe.
+    safe_position_simulator = Node(
+        package="point_robot_ros",
+        executable="safe_position_simulator",
+        name="safe_position_simulator",
+        output="screen",
+        parameters=[
+            {
+                "initial_x": ParameterValue(initial_x, value_type=float),
+                "timer_period": ParameterValue(timer_period, value_type=float),
+                "max_linear_speed": ParameterValue(
+                    max_linear_speed, value_type=float,
+                ),
+                "command_timeout": ParameterValue(
+                    command_timeout, value_type=float,
+                ),
+            }
+        ],
+        condition=IfCondition(use_safety),
+    )
+
     return LaunchDescription(
         [
             DeclareLaunchArgument(
@@ -217,7 +242,7 @@ def generate_launch_description() -> LaunchDescription:
             DeclareLaunchArgument(
                 "use_safety",
                 default_value="false",
-                description="Start the velocity safety supervisor",
+                description="Drive simulated motion through the safety node",
             ),
             DeclareLaunchArgument(
                 "max_linear_speed",
@@ -265,6 +290,7 @@ def generate_launch_description() -> LaunchDescription:
             synthetic_camera_publisher,
             synthetic_lidar_publisher,
             safety_node,
+            safe_position_simulator,
             rviz,
         ]
     )

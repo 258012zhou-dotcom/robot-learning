@@ -1,5 +1,6 @@
 """Benchmark single, synchronous-vector, and asynchronous-vector stepping."""
 
+import argparse
 import csv
 from dataclasses import asdict
 import json
@@ -33,9 +34,9 @@ BACKENDS: tuple[BackendName, ...] = (
 )
 
 
-def load_config() -> dict[str, Any]:
+def load_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
     """Load benchmark settings and reject duplicate workload names."""
-    with CONFIG_PATH.open(encoding="utf-8") as file:
+    with path.open(encoding="utf-8") as file:
         config = json.load(file)
     names = [workload["name"] for workload in config["workloads"]]
     if not names or len(names) != len(set(names)):
@@ -55,9 +56,11 @@ def run_all_benchmarks(
         factory = PointRobotBenchmarkFactory(
             xml_path=str(MODEL_PATH),
             frame_skip=int(workload["frame_skip"]),
-            # The single backend takes one ordinary step per Transition, so its
-            # Episode limit must cover the largest timed and warmup sequence.
-            max_episode_steps=transition_count + warmup_steps + 10,
+            # Both phases start at step zero after a seeded reset.
+            max_episode_steps=max(
+                transition_count // int(config["vector_environment_count"]),
+                warmup_steps,
+            ) + 10,
         )
         records[workload_name] = {}
         for backend in BACKENDS:
@@ -94,20 +97,22 @@ def verify_reproducibility(
     for workload_name, backend_records in records.items():
         checks[workload_name] = {}
         for backend, repetitions in backend_records.items():
-            checksums = np.asarray(
-                [record.checksum for record in repetitions],
-                dtype=np.float64,
-            )
-            checks[workload_name][f"{backend}_repeated_checksum_match"] = bool(
-                np.allclose(checksums, checksums[0], rtol=0.0, atol=1e-12)
+            checks[workload_name][f"{backend}_repeated_trajectory_match"] = (
+                bool(repetitions) and all(
+                    record.trajectory_sha256 == repetitions[0].trajectory_sha256
+                    for record in repetitions
+                )
             )
 
-        # Sync and Async run the same number of environments with identical
-        # seeds/actions, so their numerical checksum should also be identical.
-        sync_checksum = backend_records["sync_vector"][0].checksum
-        async_checksum = backend_records["async_vector"][0].checksum
-        checks[workload_name]["sync_async_checksum_match"] = bool(
-            np.isclose(sync_checksum, async_checksum, rtol=0.0, atol=1e-12)
+        # Include every repetition of the serial baseline as well as vectors.
+        reference = backend_records["single"][0]
+        checks[workload_name]["all_backends_trajectory_match"] = all(
+            record.trajectory_sha256 == reference.trajectory_sha256
+            and record.environment_count == reference.environment_count
+            and record.vector_step_count == reference.vector_step_count
+            and record.transition_count == reference.transition_count
+            for backend in BACKENDS
+            for record in backend_records[backend]
         )
     return checks
 
@@ -174,6 +179,9 @@ def save_raw_records(
         "rollout_seconds",
         "transitions_per_second",
         "checksum",
+        "trajectory_sha256",
+        "warmup_seconds",
+        "reset_seconds",
     ]
     with (OUTPUT_DIR / "benchmark_repetitions.csv").open(
         "w",
@@ -244,7 +252,7 @@ def save_benchmark_plot(
         axis.set_xticks(x_positions, workloads)
         axis.grid(axis="y", alpha=0.25)
         axis.legend()
-    figure.suptitle("Single versus SyncVectorEnv versus AsyncVectorEnv")
+    figure.suptitle("Serial pool versus SyncVectorEnv versus AsyncVectorEnv")
     figure.tight_layout()
     figure.savefig(OUTPUT_DIR / "vector_environment_benchmark.png", dpi=160)
     plt.close(figure)
@@ -252,7 +260,16 @@ def save_benchmark_plot(
 
 def main() -> None:
     """Run the fixed benchmark protocol and report facts, not assumptions."""
-    config = load_config()
+    global OUTPUT_DIR
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--config", type=Path, default=CONFIG_PATH)
+    parser.add_argument("--output-dir", type=Path, required=True)
+    args = parser.parse_args()
+    config = load_config(args.config)
+    OUTPUT_DIR = args.output_dir
+    # Refuse to overwrite historical evidence, including an existing run.log.
+    if OUTPUT_DIR.exists() and any(OUTPUT_DIR.iterdir()):
+        raise FileExistsError("output directory must be new or empty")
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(
         level=logging.INFO,
@@ -277,6 +294,22 @@ def main() -> None:
 
     results = {
         "experiment_name": config["experiment_name"],
+        "protocol_version": 2,
+        "single_means_serial_environment_pool": True,
+        "measures_learning_performance": False,
+        "base_seed": config["base_seed"],
+        "seed_rule": "base_seed + environment_index",
+        "action_rule": "float32(0.75*sin(0.017*step + 0.37*environment_index))",
+        "warmup_vector_steps": config["warmup_vector_steps"],
+        "timing_scope": (
+            "rollout includes action generation, step, checks and SHA-256; "
+            "construction/first reset, warmup, second seeded reset and close excluded"
+        ),
+        "trajectory_hash_scope": (
+            "SHA-256: initial observations, then actions/observations/rewards/"
+            "terminated/truncated in step, environment, component order; "
+            "each field encoded as ndim/shape <i8 followed by C-order <f8 values"
+        ),
         "timing_is_machine_and_load_dependent": True,
         "fixed_total_transitions_within_each_workload": True,
         "vector_environment_count": config["vector_environment_count"],
@@ -291,7 +324,7 @@ def main() -> None:
     for workload_name, backend_summaries in summaries.items():
         for backend, summary in backend_summaries.items():
             logging.info(
-                "%s / %s：%.0f transitions/s，单环境加速比 %.2fx，初始化 %.4f s",
+                "%s / %s：%.0f transitions/s，相对串行池 %.2fx，初始化 %.4f s",
                 workload_name,
                 backend,
                 summary["median_transitions_per_second"],

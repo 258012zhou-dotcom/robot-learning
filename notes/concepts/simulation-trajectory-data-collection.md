@@ -25,9 +25,9 @@ reward[t], observation[t+1], terminated[t], truncated[t]
 
 因此第 `t` 条 Transition 是：
 
-\[
-(o_t,a_t,r_t,o_{t+1},terminated_t,truncated_t)
-\]
+```text
+(当前观测, 当前动作, 本步奖励, 下一观测, 是否任务终止, 是否外部截断)
+```
 
 如果一个 Episode 执行 `T` 次动作：
 
@@ -64,6 +64,8 @@ next_observations[t]    = observations[t + 1]
 
 二者都代表当前 Episode 不再继续，但语义不同。强化学习计算 bootstrap target 时，时间截断不一定等同于真正终止。只保存一个模糊的 `done` 会丢失这部分信息。
 
+二者**允许同时为真**：例如任务成功时，外层 `TimeLimit` 恰好达到步数上限。完整 Episode 的最后一行至少一个结束标记为真，而不是恰好一个；两个字段都必须是布尔数组。项目测试用真实 `TimeLimit` 制造该边界，验证转换、NPZ 保存与加载都保留两个 `True`，同时继续拒绝尚未结束的 Episode。
+
 ## 按 Episode 划分数据集
 
 相邻机器人状态通常高度相似。如果先打散所有 Transition，再随机划分：
@@ -98,9 +100,9 @@ next_observations[t]    = observations[t + 1]
 
 如果训练时均匀抽取所有 Transition，随机策略数据约占：
 
-\[
-\frac{7394}{12102}\approx61.1\%
-\]
+```text
+随机策略数据占比 = 7394 / 12102 ≈ 61.1%
+```
 
 这与“每种策略各占一半 Episode”不是同一个分布。可选处理方法包括：
 

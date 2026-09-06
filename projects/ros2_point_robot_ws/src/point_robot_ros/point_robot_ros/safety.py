@@ -31,7 +31,12 @@ class SafetySupervisor:
 
     def accept_command(self, command: float, now: float) -> bool:
         """Store a finite, limited command unless emergency stop is active."""
-        self._validate_finite(command=command, now=now)
+        try:
+            self._validate_finite(command=command, now=now)
+        except ValueError:
+            # Rejecting a new invalid command must also discard old motion.
+            self.discard_command()
+            raise
 
         if self._emergency_stop:
             return False
@@ -46,6 +51,7 @@ class SafetySupervisor:
     def safe_command(self, now: float) -> float:
         """Return the command allowed by the current safety state."""
         if not math.isfinite(now):
+            self.discard_command()
             raise ValueError("now must be finite")
 
         if self._emergency_stop or self._last_command_time is None:
@@ -53,19 +59,23 @@ class SafetySupervisor:
 
         elapsed = now - self._last_command_time
         if elapsed < 0.0:
+            self.discard_command()
             raise ValueError("now cannot move backwards")
         if elapsed > self.command_timeout:
-            self._command = 0.0
-            self._last_command_time = None
+            self.discard_command()
             return 0.0
 
         return self._command
 
+    def discard_command(self) -> None:
+        """Clear motion until a fresh valid command arrives, keeping the latch."""
+        self._command = 0.0
+        self._last_command_time = None
+
     def engage_emergency_stop(self) -> None:
         """Stop immediately and discard the previously accepted command."""
         self._emergency_stop = True
-        self._command = 0.0
-        self._last_command_time = None
+        self.discard_command()
 
     def reset_emergency_stop(self) -> None:
         """Release emergency stop without restoring an old command."""

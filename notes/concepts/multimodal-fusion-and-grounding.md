@@ -12,35 +12,41 @@
 
 实验 014 使用图像和文本的全局向量完成语义检索：
 
-\[
-z_v=f_v(I), \qquad z_t=f_t(T)
-\]
+```text
+图像 → 图像编码器 → 整图向量
+文字 → 文本编码器 → 整句向量
+```
 
 这种结构能回答“整张图与哪段文字最匹配”，但一张图包含多个物体时，一个全局图像向量未必保留每个物体的位置。
 
 空间定位需要让视觉编码器输出区域 Token：
 
-\[
-V\in\mathbb{R}^{N\times P\times D}
-\]
+```text
+visual_tokens.shape = (N, P, D)
+```
 
 其中 `N` 是 batch 大小，`P` 是图像区域数量，`D` 是特征维度。文本编码器输出每条指令的 Query：
 
-\[
-Q\in\mathbb{R}^{N\times D}
-\]
+```text
+language_query.shape = (N, D)
+```
 
 每个视觉区域与语言 Query 的相关性为：
 
-\[
-s_{np}=\frac{V_{np}^{\mathsf T}Q_n}{\sqrt D}
-\]
+```text
+score[n, p] = dot(visual_tokens[n, p], language_query[n]) / sqrt(D)
+```
+
+`dot` 是点积，`sqrt(D)` 是 D 的平方根。对同一张图的 P 个区域分别打分，分数越大，表示该区域与指令越匹配。
 
 经过 Softmax 得到区域权重，再用区域中心坐标加权求和：
 
-\[
-\hat c_n=\sum_p \operatorname{softmax}(s_n)_p c_p
-\]
+```text
+weight[n] = softmax(score[n])             # 每张图的区域权重之和为 1
+predicted_center[n] = Σ_p weight[n, p] × region_center[p]
+```
+
+`Σ_p` 表示遍历所有区域后求和；`region_center[p]` 是第 p 个区域的二维中心坐标。比如两个中心为 `(0, 0)`、`(1, 0)`，权重为 0.2、0.8，预测中心就是 `(0.8, 0)`，不是直接选中第二个中心。
 
 这是一种可微分 Soft-Argmax：训练误差可以通过坐标预测、Attention、视觉特征和文本特征反向传播。
 

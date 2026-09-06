@@ -105,32 +105,25 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
             dtype=np.float32,
         )
 
-        # The measured position may extend beyond the physical joint range by
-        # the configured sensor-bias limit. Velocity is intentionally unbounded.
-        joint_range = self.model.jnt_range[self._joint_id]
-        maximum_error = max(
-            abs(float(joint_range[0])),
-            abs(float(joint_range[1])),
-        ) + (
-            self.maximum_target_distance
-            + self.maximum_observation_position_bias
-        )
+        # MuJoCo joint limits are soft constraints, not hard bounds on qpos.
+        # Keep measured state/error unbounded instead of clipping physical data
+        # to make it fit a Box. The sampled target has a genuine finite bound.
         self.observation_space = spaces.Box(
             low=np.asarray(
                 [
-                    joint_range[0] - self.maximum_observation_position_bias,
+                    -np.inf,
                     -np.inf,
                     -self.maximum_target_distance,
-                    -maximum_error,
+                    -np.inf,
                 ],
                 dtype=np.float32,
             ),
             high=np.asarray(
                 [
-                    joint_range[1] + self.maximum_observation_position_bias,
+                    np.inf,
                     np.inf,
                     self.maximum_target_distance,
-                    maximum_error,
+                    np.inf,
                 ],
                 dtype=np.float32,
             ),
@@ -149,9 +142,6 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
         options: dict[str, Any] | None = None,
     ) -> tuple[np.ndarray, dict[str, Any]]:
         """Reset MuJoCo state and sample or explicitly set a new target."""
-        super().reset(seed=seed)
-        mujoco.mj_resetData(self.model, self.data)
-        self._elapsed_steps = 0
         options = {} if options is None else dict(options)
 
         # Domain parameters are sampled or selected once per Episode.  Always
@@ -162,7 +152,7 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
         joint_damping = float(
             options.get("joint_damping", self.nominal_joint_damping)
         )
-        self._apply_domain_parameters(body_mass, joint_damping)
+        self._validate_domain_parameters(body_mass, joint_damping)
 
         # Deployment mismatches also reset every Episode.  The delay queue is
         # prefilled with zeros so a delay of N means exactly N inactive steps.
@@ -171,13 +161,26 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
         observation_position_bias = float(
             options.get("observation_position_bias", 0.0)
         )
-        self._apply_deployment_mismatches(
+        self._validate_deployment_mismatches(
             action_gain=action_gain,
             action_delay_steps=action_delay_steps,
             observation_position_bias=observation_position_bias,
         )
 
         initial_position = float(options.get("initial_position", 0.0))
+        # Validate explicit options before changing physics, the delay queue,
+        # or the RNG. A rejected reset must leave the current Episode usable.
+        target_position = float(options.get("target_position", 0.0))
+        self._validate_reset_positions(initial_position, target_position)
+        super().reset(seed=seed)
+        mujoco.mj_resetData(self.model, self.data)
+        self._elapsed_steps = 0
+        self._apply_domain_parameters(body_mass, joint_damping)
+        self._action_gain = action_gain
+        self._action_delay_steps = action_delay_steps
+        self._observation_position_bias = observation_position_bias
+        self._delayed_actions.clear()
+        self._delayed_actions.extend([0.0] * action_delay_steps)
         if "target_position" in options:
             target_position = float(options["target_position"])
         else:
@@ -197,16 +200,18 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
         action: np.ndarray,
     ) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
         """Clip one action, advance physics, and evaluate the new state."""
-        action_array = np.asarray(action, dtype=np.float32)
+        action_array = np.asarray(action, dtype=np.float64)
         if action_array.shape != self.action_space.shape:
             raise ValueError(
                 f"action must have shape {self.action_space.shape}"
             )
+        if not np.all(np.isfinite(action_array)):
+            raise ValueError("action must contain only finite values")
         clipped_action = np.clip(
             action_array,
             self.action_space.low,
             self.action_space.high,
-        )
+        ).astype(np.float32)
         commanded_action = float(clipped_action[0])
         self._delayed_actions.append(commanded_action)
         delayed_action = self._delayed_actions.popleft()
@@ -284,14 +289,14 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
             "observation_position_bias": self._observation_position_bias,
         }
 
-    def _apply_deployment_mismatches(
+    def _validate_deployment_mismatches(
         self,
         *,
         action_gain: float,
         action_delay_steps: Any,
         observation_position_bias: float,
     ) -> None:
-        """Configure actuator and sensor mismatch for one complete Episode."""
+        """Validate deployment options without changing Episode state."""
         if not np.isfinite(action_gain) or action_gain <= 0.0:
             raise ValueError("action_gain must be a positive finite number")
         if type(action_delay_steps) is not int or not (
@@ -312,23 +317,23 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
                 f"{self.maximum_observation_position_bias}]"
             )
 
-        self._action_gain = action_gain
-        self._action_delay_steps = action_delay_steps
-        self._observation_position_bias = observation_position_bias
-        self._delayed_actions.clear()
-        self._delayed_actions.extend([0.0] * action_delay_steps)
+    @staticmethod
+    def _validate_domain_parameters(
+        body_mass: float,
+        joint_damping: float,
+    ) -> None:
+        """Reject invalid dynamics before touching the model or simulation."""
+        if not np.isfinite(body_mass) or body_mass <= 0.0:
+            raise ValueError("body_mass must be a positive finite number")
+        if not np.isfinite(joint_damping) or joint_damping < 0.0:
+            raise ValueError("joint_damping must be a non-negative finite number")
 
     def _apply_domain_parameters(
         self,
         body_mass: float,
         joint_damping: float,
     ) -> None:
-        """Apply one physically consistent mass scale and joint damping value."""
-        if not np.isfinite(body_mass) or body_mass <= 0.0:
-            raise ValueError("body_mass must be a positive finite number")
-        if not np.isfinite(joint_damping) or joint_damping < 0.0:
-            raise ValueError("joint_damping must be a non-negative finite number")
-
+        """Apply validated mass and damping, scaling inertia with mass."""
         mass_scale = body_mass / self.nominal_body_mass
         self.model.body_mass[self._body_id] = body_mass
         # A uniformly denser sphere scales mass and rotational inertia together.
@@ -354,6 +359,8 @@ class PointRobotReachEnv(gym.Env[np.ndarray, np.ndarray]):
         target_position: float,
     ) -> None:
         """Keep explicit reset options inside model and task boundaries."""
+        if not np.isfinite(initial_position) or not np.isfinite(target_position):
+            raise ValueError("initial_position and target_position must be finite")
         joint_range = self.model.jnt_range[self._joint_id]
         if not float(joint_range[0]) <= initial_position <= float(
             joint_range[1]
@@ -393,6 +400,15 @@ def _validate_environment_settings(
         raise ValueError("frame_skip must be a positive integer")
     if type(max_episode_steps) is not int or max_episode_steps <= 0:
         raise ValueError("max_episode_steps must be a positive integer")
+    for name, value in (
+        ("minimum_target_distance", minimum_target_distance),
+        ("maximum_target_distance", maximum_target_distance),
+        ("success_tolerance", success_tolerance),
+        ("velocity_tolerance", velocity_tolerance),
+        ("action_penalty_weight", action_penalty_weight),
+    ):
+        if not np.isfinite(value):
+            raise ValueError(f"{name} must be finite")
     if not 0.0 < minimum_target_distance <= maximum_target_distance:
         raise ValueError("target distance range must be positive and ordered")
     if success_tolerance <= 0.0:

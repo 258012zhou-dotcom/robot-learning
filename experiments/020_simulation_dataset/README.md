@@ -62,7 +62,7 @@ python -m json.tool outputs/020_simulation_dataset/manifest.json
 
 - 所有字段具有相同 Transition 数量。
 - `next_observation[t]` 与同一 Episode 的 `observation[t+1]` 一致。
-- 只有 Episode 最后一行可以 terminated 或 truncated。
+- 只有 Episode 最后一行可以 terminated 或 truncated；最后一行至少一个为真，允许成功与外部时间上限同时发生。两个字段必须保留为布尔数组。
 - Action 必须位于环境声明范围内。
 - 同一 Episode 的 seed、policy 和 split 不得变化。
 - 保存后重新加载，所有数组必须逐项一致。

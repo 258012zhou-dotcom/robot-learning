@@ -134,7 +134,7 @@ def build_transition_dataset(
             raise ValueError("an Episode must contain T + 1 observations")
         if result.rewards.shape != (step_count,):
             raise ValueError("an Episode must contain one reward per action")
-        if result.terminated == result.truncated:
+        if not (result.terminated or result.truncated):
             raise ValueError("an Episode must end by termination or truncation")
 
         # Row t connects observations[t] to observations[t + 1].
@@ -195,6 +195,9 @@ def validate_transition_dataset(
     for name in ("rewards", "terminated", "truncated"):
         if getattr(dataset, name).ndim != 1:
             raise ValueError(f"{name} must be one-dimensional")
+    for name in ("terminated", "truncated"):
+        if getattr(dataset, name).dtype != np.bool_:
+            raise ValueError(f"{name} must have boolean dtype")
     for name in ("observations", "actions", "rewards", "next_observations"):
         if not np.all(np.isfinite(getattr(dataset, name))):
             raise ValueError(f"{name} contains non-finite values")
@@ -220,7 +223,9 @@ def validate_transition_dataset(
             dataset.truncated[rows[:-1]]
         ):
             raise ValueError("only the final transition may end an Episode")
-        if dataset.terminated[rows[-1]] == dataset.truncated[rows[-1]]:
+        # TimeLimit may truncate on the same step that the task terminates.
+        # Preserve both flags; learners need the original termination signal.
+        if not (dataset.terminated[rows[-1]] or dataset.truncated[rows[-1]]):
             raise ValueError("final transition must terminate or truncate")
         if rows.size > 1 and not np.array_equal(
             dataset.next_observations[rows[:-1]],

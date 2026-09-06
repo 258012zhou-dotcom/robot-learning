@@ -357,3 +357,97 @@ def test_reset_rejects_invalid_deployment_mismatches(invalid_options) -> None:
 
     with pytest.raises(ValueError):
         environment.reset(seed=26, options=invalid_options)
+
+
+@pytest.mark.parametrize("invalid", [np.nan, np.inf, -np.inf])
+def test_invalid_action_preserves_physics_and_queued_commands(invalid) -> None:
+    """A bad action must fail before advancing time or entering the delay FIFO."""
+    environment = make_environment(frame_skip=1)
+    reference = make_environment(frame_skip=1)
+    try:
+        for current in (environment, reference):
+            current.reset(seed=31, options={"action_delay_steps": 2})
+            current.step(np.asarray([0.75], dtype=np.float32))
+        time_before = environment.data.time
+        qpos_before = environment.data.qpos.copy()
+        qvel_before = environment.data.qvel.copy()
+
+        with pytest.raises(ValueError, match="finite"):
+            environment.step(np.asarray([invalid]))
+
+        assert environment.data.time == time_before
+        np.testing.assert_array_equal(environment.data.qpos, qpos_before)
+        np.testing.assert_array_equal(environment.data.qvel, qvel_before)
+        # Matching later transitions proves the invalid input did not replace
+        # or shift the legitimate action that is waiting in the delay queue.
+        for _ in range(3):
+            actual = environment.step(np.asarray([0.0], dtype=np.float32))
+            expected = reference.step(np.asarray([0.0], dtype=np.float32))
+            np.testing.assert_array_equal(actual[0], expected[0])
+            assert actual[1:] == expected[1:]
+    finally:
+        environment.close()
+        reference.close()
+
+
+@pytest.mark.parametrize(
+    "option",
+    ["initial_position", "target_position", "body_mass", "joint_damping",
+     "action_gain", "observation_position_bias"],
+)
+@pytest.mark.parametrize("invalid", [np.nan, np.inf, -np.inf])
+def test_invalid_reset_does_not_change_current_episode(option, invalid) -> None:
+    """Validation failure must preserve dynamics, elapsed time, and RNG state."""
+    environment = make_environment(frame_skip=1)
+    reference = make_environment(frame_skip=1)
+    try:
+        for current in (environment, reference):
+            current.reset(seed=32, options={"body_mass": 1.5, "action_delay_steps": 2})
+            current.step(np.asarray([0.5], dtype=np.float32))
+        time_before = environment.data.time
+        mass_before = environment.model.body_mass.copy()
+        with pytest.raises(ValueError):
+            environment.reset(seed=999, options={option: invalid})
+        assert environment.data.time == time_before
+        np.testing.assert_array_equal(environment.model.body_mass, mass_before)
+        for _ in range(3):
+            actual = environment.step(np.asarray([0.0], dtype=np.float32))
+            expected = reference.step(np.asarray([0.0], dtype=np.float32))
+            np.testing.assert_array_equal(actual[0], expected[0])
+            assert actual[1:] == expected[1:]
+        np.testing.assert_array_equal(environment.reset()[0], reference.reset()[0])
+    finally:
+        environment.close()
+        reference.close()
+
+
+@pytest.mark.parametrize(
+    "setting",
+    ["minimum_target_distance", "maximum_target_distance", "success_tolerance",
+     "velocity_tolerance", "action_penalty_weight"],
+)
+@pytest.mark.parametrize("invalid", [np.nan, np.inf, -np.inf])
+def test_environment_settings_must_be_finite(setting, invalid) -> None:
+    """NaN must not bypass comparisons and silently disable task conditions."""
+    with pytest.raises(ValueError, match="finite"):
+        make_environment(**{setting: invalid})
+
+
+@pytest.mark.parametrize("direction", [-1.0, 1.0])
+def test_soft_joint_limit_observations_are_valid_without_clipping(direction) -> None:
+    """A soft constraint may yield qpos just beyond its nominal joint range."""
+    environment = make_environment()
+    try:
+        environment.reset(
+            seed=33,
+            options={"initial_position": direction * 5.0,
+                     "target_position": direction,
+                     "observation_position_bias": direction},
+        )
+        observation, reward, _, _, info = environment.step(np.asarray([direction]))
+        assert direction * info["position"] > 5.0
+        assert environment.observation_space.contains(observation)
+        assert np.isfinite(reward)
+        assert observation[0] == np.float32(info["position"] + direction)
+    finally:
+        environment.close()

@@ -5,6 +5,7 @@ import json
 import logging
 from pathlib import Path
 import random
+import sys
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -13,6 +14,11 @@ import torch
 from torch.optim import AdamW
 
 from robot_learning.dynamics_model import select_torch_device
+from robot_learning.model_artifacts import (
+    image_preprocessing,
+    run_inference_cli,
+    save_model_artifact,
+)
 from robot_learning.peft import inject_lora_into_linear_layers
 from robot_learning.vision_language import (
     ImageTextDataset,
@@ -101,6 +107,43 @@ def evaluate(
         temperature=float(config["temperature"]),
         image_batch_size=int(config["evaluation_batch_size"]),
     )
+
+
+def save_lora_checkpoint(
+    path: Path,
+    model: VisionLanguageDualEncoder,
+    config: dict[str, Any],
+    vocabulary: SimpleVocabulary,
+    source_descriptions: tuple[str, ...],
+    training: dict[str, Any],
+) -> None:
+    """Bundle the selected adapter and its exact frozen base in one artifact."""
+    architecture = {
+        name: int(config[name]) for name in (
+            "maximum_token_count", "embedding_dimension", "text_head_count",
+            "text_mlp_hidden_dimension", "text_layer_count",
+        )
+    }
+    architecture.update(vocabulary_size=len(vocabulary), padding_id=vocabulary.padding_id)
+    tokens = sorted(vocabulary.token_to_id, key=vocabulary.token_to_id.__getitem__)
+    save_model_artifact(path, model, {
+        "model_kind": "lora_dual_encoder",
+        "architecture": architecture,
+        "vocabulary_tokens": tokens,
+        "tokenization": "lowercase [a-z0-9]+; right pad; reject overlength",
+        "lora": {
+            "target_module_names": list(LORA_TARGETS),
+            "rank": int(config["lora_rank"]),
+            "alpha": float(config["lora_alpha"]),
+            "dropout_probability": float(config["lora_dropout_probability"]),
+        },
+        "preprocessing": image_preprocessing(int(config["image_size"])),
+        "source_descriptions": list(source_descriptions),
+        "target_descriptions": list(TARGET_DESCRIPTIONS),
+        "training_config": config,
+        "best_epoch": training["best_epoch"],
+        "best_validation_loss": training["best_validation_loss"],
+    })
 
 
 def train_with_validation(
@@ -491,12 +534,10 @@ def main() -> None:
                 "lora": lora_training,
                 "full_finetune": full_training,
             }
-            adapter_state = {
-                name: parameter.detach().cpu()
-                for name, parameter in lora_model.named_parameters()
-                if parameter.requires_grad
-            }
-            torch.save(adapter_state, OUTPUT_DIR / "trial_1_lora_adapter.pt")
+            save_lora_checkpoint(
+                OUTPUT_DIR / "trial_1_lora_model.pt", lora_model, config,
+                vocabulary, source_concepts, lora_training,
+            )
 
         logger.info(
             "试验 %d：Frozen %.2f%%，LoRA %.2f%%，Full %.2f%%",
@@ -576,4 +617,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1:
+        run_inference_cli("lora_dual_encoder")
+    else:
+        main()

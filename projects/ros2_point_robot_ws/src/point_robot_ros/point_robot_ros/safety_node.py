@@ -73,6 +73,9 @@ class SafetyNode(Node):
                 now=time.monotonic(),
             )
         except ValueError as error:
+            # accept_command has cleared the previous velocity. Publish zero
+            # immediately instead of waiting for the periodic timer.
+            self._publish_safe_command()
             self.get_logger().warning(
                 "Rejected invalid velocity command: %s" % error
             )

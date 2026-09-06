@@ -3,6 +3,7 @@
 import json
 import logging
 import random
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,11 @@ import numpy as np
 import torch
 
 from robot_learning.dynamics_model import select_torch_device
+from robot_learning.model_artifacts import (
+    image_preprocessing,
+    run_inference_cli,
+    save_model_artifact,
+)
 from robot_learning.object_detection import (
     SmallShapeDetector,
     batch_intersection_over_union,
@@ -265,6 +271,18 @@ def main() -> None:
         test_evaluation.ious,
     )
 
+    # train_* restores the minimum-validation-loss state before returning.
+    save_model_artifact(OUTPUT_DIR / "best_model.pt", model, {
+        "model_kind": "shape_detector",
+        "architecture": {"num_classes": len(CLASS_NAMES)},
+        "class_names": list(CLASS_NAMES),
+        "preprocessing": image_preprocessing(int(config["image_size"])),
+        "training_config": config,
+        "best_epoch": training.best_epoch,
+        "best_validation_loss": training.best_validation_loss,
+        "box_format": "normalized_cxcywh",
+    })
+
     results = {
         "experiment_name": config["experiment_name"],
         "seed": seed,
@@ -316,4 +334,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1:
+        run_inference_cli("shape_detector")
+    else:
+        main()

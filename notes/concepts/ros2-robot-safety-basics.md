@@ -75,6 +75,16 @@ data: false → 解除急停，等待新指令
 
 总 Launch 默认不启动安全节点；设置 `use_safety:=true` 后启用，避免在不需要速度链路的感知实验中增加无关节点。
 
+安全模式同时用 `safe_position_simulator` 替换自主匀速的 `position_publisher`，形成：
+
+```text
+cmd_vel_raw → safety_node → cmd_vel_safe → safe_position_simulator → position → TF
+```
+
+只有一个位置发布源。未发送指令时位置保持不变；`velocity_x` 只用于默认的非安全教学模式，不能绕过安全层让安全模式自动运动。模拟器还独立检查安全指令是否超时，避免上游停止发布后永久保持旧速度。
+
+收到 `NaN` 或无穷速度时，监督器先清空旧指令，再报告错误并立即发布零。仅“拒绝新指令”还不够：旧指令仍有效时，机器人可能继续运动。
+
 ## 验证证据
 
 手动 ROS 验证已确认：
@@ -85,11 +95,19 @@ data: false → 解除急停，等待新指令
 - 停止原始发布者并解除急停后，输出仍为 `0.0`；发送新指令后才恢复。
 - 总 Launch 使用 `use_safety:=true` 时能发现 `/safety_node` 和急停 Service。
 
-自动验证包括 9 个纯 Python 单元测试和 1 个 ROS Launch 集成测试。完整工作空间结果为 65 tests、0 errors、0 failures、1 skipped。
+2026-09-05 修复后，13 个安全逻辑单元测试覆盖上述状态转换及非有限输入清空旧速度。原有安全 Topic 集成测试继续保留；新增 `test_safe_motion_launch.py` 直接运行总 Launch，检查单一位置源、限幅运动、非法输入停车、急停、复位不恢复旧指令和断流停车。
+
+关键断言不是只看 `cmd_vel_safe == 0`，而是收集多条**新位置消息**，检查 `max(position) - min(position) < 1e-9`。非法输入场景使用 2 秒超时，并要求在 1 秒内验证停车，以免把自然超时误当成非法输入处理正确。
+
+实际执行：先 `colcon build --symlink-install --packages-select point_robot_ros`，再在独立测试域运行 `ROS_DOMAIN_ID=132 RMW_IMPLEMENTATION=rmw_cyclonedds_cpp ROS_LOCALHOST_ONLY=1 colcon test --event-handlers console_direct+`。`colcon test-result --verbose` 汇总为 70 tests、0 errors、0 failures、1 skipped。执行沙箱内曾因无法枚举网卡而失败；允许本机 DDS 通信后重跑通过，未修改用户 DDS 配置。
 
 ## 当前边界
 
-本轮完成代表能够解释并验证软件级限幅、Watchdog 和急停恢复逻辑，不代表已经完成真实机器人功能安全。尚未覆盖：
+本轮完成代表能够解释并验证软件级限幅、Watchdog 和急停恢复逻辑，不代表已经完成真实机器人功能安全。
+
+本次端到端验证仅使用一维、固定步长积分的模拟运动节点，没有电机惯性、制动距离或真实执行器。软件无法保证操作系统冻结、执行端进程失效时的物理停车；恢复后的“新指令”也只是新收到的消息，尚未用来源时间戳区分延迟抵达的旧消息。
+
+尚未覆盖：
 
 - 硬件急停、驱动器使能与安全继电器。
 - 加速度、关节位置、力矩和工作空间限制。
