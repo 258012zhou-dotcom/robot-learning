@@ -1,0 +1,8 @@
+{
+  "experiment_name": "024_arm_inventory",
+  "hardware_model": "PIPER",
+  "can_name": "can0",
+  "conda_environment": "xvla",
+  "expected_sdk_version": "0.6.1",
+  "warmup_seconds": 1.0
+}

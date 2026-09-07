@@ -103,6 +103,11 @@
 - 综合验证：[实验 017：MuJoCo 最小物理步进](../experiments/017_mujoco_step/README.md) · [实验 018：Gymnasium 到达任务与控制基线](../experiments/018_gymnasium_rollout/README.md) · [实验 019：控制频率对闭环行为的影响](../experiments/019_control_frequency/README.md) · [实验 020：可复现的仿真轨迹数据集](../experiments/020_simulation_dataset/README.md) · [实验 021：动力学领域随机化与独立评估](../experiments/021_domain_randomization/README.md) · [实验 022：Sim-to-Sim 失配校准与迁移评价](../experiments/022_sim_to_sim_calibration/README.md) · [实验 023：向量环境性能基准](../experiments/023_vector_environment_benchmark/README.md)
 - 阶段总结：[阶段 4 完成小结](weekly/2026-09-05-stage4-complete.md)
 
+## 机械臂真机实践线（第一轮）
+
+- 进行中：[实验 024：机械臂硬件盘点与只读遥测](../experiments/024_arm_inventory/README.md)
+- 真机实验的结论与限制记录在实验 README 和 reflection；形成稳定知识体系后再补概念笔记。
+
 ## 早期实验、总结与故障排查
 
 - [阶段 0 检查点](weekly/2026-08-15-stage0-checkpoint.md) · [阶段 0 完成小结](weekly/2026-08-15-stage0-complete.md)
