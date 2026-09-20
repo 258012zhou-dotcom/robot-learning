@@ -1,5 +1,7 @@
 # 实验 025：参数查询与首次使能反馈验证
 
+> 历史记录：已于 2026-09-20 转入设备资料，不再作为当前课程待办。下文保留当时结论及未验证边界；后续更正见 [设备发现](../findings.md)。命令路径已更新，原输出目录保留。
+
 **状态：已完成。** 2026-09-08 完成现场验证，2026-09-09 按本实验范围收尾；不要求补做故障停止测试。
 
 ## 完成依据与范围
@@ -9,7 +11,7 @@
 - 首次使能时六轴反馈由全部未使能变为已使能，模式仍为待机，检查的故障标志均为正常。用户现场未观察到明显运动或异响。
 - 相关模拟测试曾运行得到 18 passed；模拟测试不替代实际硬件验证。
 
-使能步骤与结果见 [使能反馈验证](enable_observation.md)，完整证据及历史问题见 [实验反思](reflection.md)。本实验不包含主动关节运动、失能测试、位置保持精度、急停、Watchdog 或通信中断保护验证。这些项目未验证、不影响 025 收尾，也不因此被认定安全；后续运动条件另行评估。
+使能步骤与结果见 [使能反馈验证](enable_observation.md)，完整证据及历史问题见 [实验反思](query_reflection.md)。本实验不包含主动关节运动、失能测试、位置保持精度、急停、Watchdog 或通信中断保护验证。这些项目未验证、不影响 025 收尾，也不因此被认定安全；后续运动条件另行评估。
 
 ## 参数查询子步骤
 
@@ -27,13 +29,13 @@
 
 ```bash
 cd /media/zhao/F/zxd/robot-learning
-PYTHONPATH=src /media/zhao/F/envs/xvla/bin/python experiments/025_piper_safety_query/run.py
+PYTHONPATH=src /media/zhao/F/envs/xvla/bin/python hardware/piper/scripts/query_parameters.py
 ```
 
 现场确认机械臂静止、其他控制程序已停止后，进行一次查询：
 
 ```bash
-timeout 15s env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /media/zhao/F/envs/xvla/bin/python experiments/025_piper_safety_query/run.py --query-once
+timeout 15s env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /media/zhao/F/envs/xvla/bin/python hardware/piper/scripts/query_parameters.py --query-once
 ```
 
 关节回复缺失会报错，不保存本次结果。六关节已完整回复但固件格式异常时，等待结束后保存 `query_status=partial`、`firmware_version=null` 和 SDK 原始返回值 `firmware_raw`。已有结果文件可能是旧运行留下的，不能把它当作失败运行的结果。

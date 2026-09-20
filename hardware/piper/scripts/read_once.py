@@ -16,7 +16,7 @@ from robot_learning.piper_telemetry import (
 )
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 CONFIG_PATH = PROJECT_ROOT / "configs" / "024_arm_inventory.json"
 RESULT_PATH = PROJECT_ROOT / "outputs" / "024_arm_inventory" / "results.json"
 

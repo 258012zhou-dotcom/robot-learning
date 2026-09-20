@@ -8,7 +8,7 @@ from pathlib import Path
 from robot_learning.piper_safety_query import query_parameters
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 
 
 def main() -> None:

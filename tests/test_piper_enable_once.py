@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-PATH = Path(__file__).resolve().parents[1] / "experiments/025_piper_safety_query/enable_once.py"
+PATH = Path(__file__).resolve().parents[1] / "hardware/piper/scripts/enable_once.py"
 spec = importlib.util.spec_from_file_location("enable_once", PATH)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)

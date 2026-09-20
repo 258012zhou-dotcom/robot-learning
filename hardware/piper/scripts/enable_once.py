@@ -112,7 +112,7 @@ def main():
         except Exception as error:
             exit_code = 1
             report["disconnect_error"] = str(error)
-        output = Path(__file__).resolve().parents[2] / "outputs/025_piper_safety_query"
+        output = Path(__file__).resolve().parents[3] / "outputs/025_piper_safety_query"
         output.mkdir(parents=True, exist_ok=True)
         path = output / f"enable_observation_{time.time_ns()}.json"
         path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

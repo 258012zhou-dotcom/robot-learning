@@ -8,7 +8,7 @@ import pytest
 
 
 MODULE = runpy.run_path(str(Path(__file__).resolve().parents[1]
-                           / "experiments/025_piper_safety_query/capture_firmware.py"))
+                           / "hardware/piper/scripts/capture_firmware.py"))
 
 
 def test_one_request_preserves_reply_bytes(monkeypatch):

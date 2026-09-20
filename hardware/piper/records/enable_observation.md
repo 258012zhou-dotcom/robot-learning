@@ -1,6 +1,8 @@
 # 首次使能反馈验证
 
-2026-09-08 用户已现场执行一次：六轴由未使能变为已使能，未观察到明显运动或异响。详细证据与适用范围见 [实验反思](reflection.md)。不应为重复确认而再次执行使能。
+> 历史记录：已于 2026-09-20 转入设备资料，不再作为当前课程待办。下文保留当时结论及未验证边界；后续更正见 [设备发现](../findings.md)。命令路径已更新，原输出目录保留。
+
+2026-09-08 用户已现场执行一次：六轴由未使能变为已使能，未观察到明显运动或异响。详细证据与适用范围见 [实验反思](query_reflection.md)。不应为重复确认而再次执行使能。
 
 本步只验证使能反馈，不是位置控制器，也不保证机械臂静止。
 须由现场人员确认厂商停止流程和可靠支撑，人员离开夹压区域；不得用手托代替支撑。
@@ -16,13 +18,13 @@
 预览（不连接 CAN）：
 
 ```bash
-/media/zhao/F/envs/xvla/bin/python experiments/025_piper_safety_query/enable_once.py
+/media/zhao/F/envs/xvla/bin/python hardware/piper/scripts/enable_once.py
 ```
 
 本次现场实际使用的命令（记录用途，不是要求再次执行）：
 
 ```bash
-/media/zhao/F/envs/xvla/bin/python experiments/025_piper_safety_query/enable_once.py --execute
+/media/zhao/F/envs/xvla/bin/python hardware/piper/scripts/enable_once.py --execute
 ```
 
 测试使用假设备，验证一次发送、前置检查、超时和异常，不验证力矩保持或急停。入口退出处理尚未完成额外的自动化覆盖。本步没有执行失能验证，也没有进行主动关节运动。

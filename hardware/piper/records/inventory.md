@@ -1,5 +1,7 @@
 # 实验 024：Piper 机械臂盘点与一次只读反馈
 
+> 历史记录：已于 2026-09-20 转入设备资料，不再作为当前课程待办。下文保留当时结论及未验证边界；后续更正见 [设备发现](../findings.md)。命令路径已更新，原输出目录保留。
+
 ## 这次只做什么
 
 先确认机械臂和软件环境，再读取一次状态。暂时不让机械臂运动。
@@ -67,7 +69,7 @@ ros2 topic echo /joint_states_feedback
 - 不自动调用 `DisableArm()` 或 `ResetPiper()`，避免机械臂失去力矩后下坠。
 - 不使用当前 ACT 的 `safe_disconnect()`，因为它会先移动再失能。
 - 机械臂得到机械支撑前，不执行失能或断电测试。
-- 实体急停已经找到，但按下后的保持或掉电行为仍需在安全支撑条件下确认。
+- 历史上曾误写“实体急停已经找到”；后续用户确认没有独立物理急停，末端按钮不能据此当作急停。详见 [后续记录](../findings.md)。
 
 ## 为什么还要换算单位
 
@@ -88,7 +90,7 @@ SDK 的关节反馈不是直接的弧度：
 ```bash
 cd /media/zhao/F/zxd/robot-learning
 PYTHONPATH=src /media/zhao/F/envs/xvla/bin/python \
-  experiments/024_arm_inventory/run.py
+  hardware/piper/scripts/read_once.py
 ```
 
 看到“未连接 CAN，也没有发送任何命令”即为通过。
@@ -105,7 +107,7 @@ PYTHONPATH=src /media/zhao/F/envs/xvla/bin/python \
 
 ```bash
 PYTHONPATH=src /media/zhao/F/envs/xvla/bin/python \
-  experiments/024_arm_inventory/run.py --read-once
+  hardware/piper/scripts/read_once.py --read-once
 ```
 
 结果写入 `outputs/024_arm_inventory/results.json`，默认不会提交 Git。

@@ -53,7 +53,7 @@ def main():
     frames = capture(bus, request)
     result = {"request_hex": QUERY_BYTES.hex(" "), "can_id": "0x4AF",
               "frames": frames, "frame_count": len(frames)}
-    directory = Path(__file__).resolve().parents[2] / "outputs/025_piper_safety_query"
+    directory = Path(__file__).resolve().parents[3] / "outputs/025_piper_safety_query"
     directory.mkdir(parents=True, exist_ok=True)
     # 唯一文件名保留多次抓取，避免覆盖此前证据。
     path = directory / f"firmware_frames_{time.time_ns()}.json"
