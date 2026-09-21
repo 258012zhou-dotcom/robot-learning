@@ -108,6 +108,29 @@ def test_normalization_statistics_use_training_expert_rows_only() -> None:
     np.testing.assert_allclose(prepared.train.observations.std(axis=0), 1.0)
 
 
+def test_preparation_can_select_only_target_error_feature() -> None:
+    """The ablation must keep the same rows while reducing input columns."""
+    dataset = make_dataset()
+    expert_train_rows = (dataset.policy_ids == 1) & (
+        dataset.split_ids == TRAIN_SPLIT_ID
+    )
+    expected_error = dataset.observations[expert_train_rows, 3:4]
+
+    prepared = prepare_behavior_cloning_data(
+        dataset,
+        expert_policy_id=1,
+        observation_indices=[3],
+    )
+
+    assert prepared.train.observations.shape == (2, 1)
+    np.testing.assert_allclose(
+        prepared.observation_normalization.mean,
+        expected_error.mean(axis=0),
+    )
+    np.testing.assert_allclose(prepared.train.observations.mean(axis=0), 0.0)
+    np.testing.assert_array_equal(prepared.train.episode_ids, [1, 1])
+
+
 def test_constant_feature_uses_unit_scale_instead_of_dividing_by_zero() -> None:
     """A constant input feature should normalize to zero without NaNs."""
     observations = np.asarray([[1.0, 2.0], [1.0, 4.0]], dtype=np.float32)
@@ -299,6 +322,27 @@ def test_loaded_policy_applies_normalization_to_one_raw_observation(
         )[0].numpy()
 
     assert action.shape == (1,)
+    np.testing.assert_array_equal(action, expected)
+
+
+def test_policy_selects_configured_feature_from_raw_observation() -> None:
+    """A one-feature model must receive target error from the full observation."""
+    model = BehaviorCloningMLP(1, action_low=[-1.0], action_high=[1.0])
+    normalization = ObservationNormalization(
+        mean=np.asarray([1.0], dtype=np.float32),
+        scale=np.asarray([2.0], dtype=np.float32),
+    )
+    policy = BehaviorCloningPolicy(
+        model,
+        normalization,
+        observation_indices=[3],
+    )
+    observation = np.asarray([10.0, 20.0, 30.0, 5.0], dtype=np.float32)
+
+    action = policy(observation)
+    with torch.inference_mode():
+        expected = model(torch.tensor([[2.0]], dtype=torch.float32))[0].numpy()
+
     np.testing.assert_array_equal(action, expected)
 
 

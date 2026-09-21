@@ -118,10 +118,15 @@ class BehaviorCloningPolicy:
         model: BehaviorCloningMLP,
         observation_normalization: ObservationNormalization,
         *,
+        observation_indices: Sequence[int] | None = None,
         device: str | torch.device = "cpu",
     ) -> None:
         self.model = model.to(device).eval()
         self.observation_normalization = observation_normalization
+        self.observation_indices = _validate_observation_indices(
+            observation_indices,
+            selected_feature_count=model.observation_size,
+        )
         self.device = torch.device(device)
 
     def __call__(self, observation: np.ndarray) -> np.ndarray:
@@ -129,6 +134,10 @@ class BehaviorCloningPolicy:
         value = np.asarray(observation, dtype=np.float32)
         if value.ndim != 1:
             raise ValueError("observation must be one-dimensional")
+        if self.observation_indices is not None:
+            if max(self.observation_indices) >= value.size:
+                raise ValueError("observation does not contain selected features")
+            value = value[list(self.observation_indices)]
         normalized = self.observation_normalization.transform(value[None, :])
         inputs = torch.from_numpy(normalized).to(self.device)
         with torch.inference_mode():
@@ -143,10 +152,15 @@ def save_behavior_cloning_checkpoint(
     *,
     source_dataset_sha256: str,
     seed: int,
+    observation_indices: Sequence[int] | None = None,
 ) -> None:
     """Save every parameter and preprocessing value needed for inference."""
     if not source_dataset_sha256:
         raise ValueError("source_dataset_sha256 must not be empty")
+    selected_indices = _validate_observation_indices(
+        observation_indices,
+        selected_feature_count=model.observation_size,
+    )
     artifact = {
         "format_version": 1,
         "model_config": {
@@ -171,6 +185,7 @@ def save_behavior_cloning_checkpoint(
         ),
         "source_dataset_sha256": source_dataset_sha256,
         "seed": seed,
+        "observation_indices": selected_indices,
     }
     torch.save(artifact, Path(path))
 
@@ -237,6 +252,7 @@ def prepare_behavior_cloning_data(
     dataset: TransitionDataset,
     *,
     expert_policy_id: int,
+    observation_indices: Sequence[int] | None = None,
 ) -> BehaviorCloningData:
     """Select expert rows and normalize every split with train-only statistics."""
     validate_transition_dataset(dataset)
@@ -249,6 +265,18 @@ def prepare_behavior_cloning_data(
         for split_id in (TRAIN_SPLIT_ID, VALIDATION_SPLIT_ID, TEST_SPLIT_ID)
     }
     _validate_episode_separation(raw_splits)
+    selected_indices = _validate_observation_indices(
+        observation_indices,
+        available_feature_count=dataset.observations.shape[1],
+    )
+    if selected_indices is not None:
+        raw_splits = {
+            split_id: replace(
+                split,
+                observations=split.observations[:, selected_indices],
+            )
+            for split_id, split in raw_splits.items()
+        }
 
     normalization = fit_observation_normalization(
         raw_splits[TRAIN_SPLIT_ID].observations
@@ -266,6 +294,33 @@ def prepare_behavior_cloning_data(
         test=normalized_splits[TEST_SPLIT_ID],
         observation_normalization=normalization,
     )
+
+
+def _validate_observation_indices(
+    observation_indices: Sequence[int] | None,
+    *,
+    available_feature_count: int | None = None,
+    selected_feature_count: int | None = None,
+) -> tuple[int, ...] | None:
+    """Validate one explicit, ordered subset of observation features."""
+    if observation_indices is None:
+        return None
+    indices = tuple(observation_indices)
+    if not indices or any(type(index) is not int for index in indices):
+        raise ValueError("observation_indices must contain integers")
+    if any(index < 0 for index in indices) or len(set(indices)) != len(indices):
+        raise ValueError("observation_indices must be unique and non-negative")
+    if (
+        available_feature_count is not None
+        and max(indices) >= available_feature_count
+    ):
+        raise ValueError("observation_indices exceed available features")
+    if (
+        selected_feature_count is not None
+        and len(indices) != selected_feature_count
+    ):
+        raise ValueError("observation_indices do not match model input size")
+    return indices
 
 
 def _select_expert_split(

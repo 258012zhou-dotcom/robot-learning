@@ -11,6 +11,7 @@
 | 机器人收到了命令却行为不对 | [TF2](concepts/ros2-tf2.md) · [控制](concepts/rigid-motion-dynamics-control.md) · [安全链路](concepts/ros2-robot-safety-basics.md) |
 | 模型训练好了，换进程却不能用 | [训练与评价](concepts/pytorch-training-workflow.md) · [预训练与微调](concepts/pretraining-and-finetuning.md) · [LoRA](concepts/parameter-efficient-finetuning.md) |
 | 准备学策略训练 | [环境接口](concepts/gymnasium-environment-and-rollout.md) · [轨迹数据](concepts/simulation-trajectory-data-collection.md) · [当前路线](../roadmap.md) |
+| BC 的 MSE 很小，闭环就一定好吗 | [Behavior Cloning、分布偏移与输入消融](concepts/behavior-cloning-and-distribution-shift.md) |
 
 公式默认用可直接阅读的文本：`@` 是矩阵乘法，`×` 是乘法，`abs(x)` 是绝对值，`Σ` 表示求和，`dt` 是时间间隔。每篇会解释本地变量含义；代码里的反斜杠可能是命令换行符，不应该一概删除。复杂数学如使用 `$...$`，需在 Markdown **预览**中阅读，而不是把源码转义符当公式。
 
@@ -106,6 +107,11 @@
 ## 论文精读与独立复现提示词
 
 - [论文学习提示词](../prompts/README.md)：推荐论文的精读和论文复现型仿真实验都在另一个 Codex 窗口进行；正常课程讲解与常规实验仍在本项目进行。
+
+## 阶段 5：策略学习
+
+- 专家示范、Behavior Cloning、离线与闭环评价、Covariate Shift、相关性捷径、输入消融和 DAgger 适用条件：[Behavior Cloning、分布偏移与输入消融](concepts/behavior-cloning-and-distribution-shift.md)
+- 综合验证：[实验 027：Behavior Cloning](../experiments/027_behavior_cloning/README.md) · [实验 028：受控扰动](../experiments/028_distribution_shift/README.md) · [实验 029：BC 输入消融](../experiments/029_bc_input_ablation/README.md)
 
 ## 未来部署的设备快速入门资料
 

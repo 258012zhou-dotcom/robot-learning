@@ -1,0 +1,17 @@
+{
+  "experiment_name": "028_distribution_shift",
+  "source_experiment_config_path": "configs/027_behavior_cloning.json",
+  "environment_config_path": "configs/020_simulation_dataset.json",
+  "model_path": "experiments/017_mujoco_step/point_robot.xml",
+  "dataset_path": "outputs/020_simulation_dataset/dataset.npz",
+  "dataset_manifest_path": "outputs/020_simulation_dataset/manifest.json",
+  "checkpoint_path": "outputs/027_behavior_cloning/best_model.pt",
+  "evaluation_seed_start": 4000,
+  "evaluation_episode_count": 100,
+  "override_start_step": 50,
+  "override_duration_steps": [0, 5, 10, 20, 40],
+  "override_magnitude": 1.0,
+  "velocity_sweep": [-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0],
+  "target_error_sweep": [-1.5, -1.0, -0.5, -0.25, 0.25, 0.5, 1.0, 1.5],
+  "device": "cpu"
+}
