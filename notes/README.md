@@ -103,9 +103,9 @@
 - 综合验证：[实验 017：MuJoCo 最小物理步进](../experiments/017_mujoco_step/README.md) · [实验 018：Gymnasium 到达任务与控制基线](../experiments/018_gymnasium_rollout/README.md) · [实验 019：控制频率对闭环行为的影响](../experiments/019_control_frequency/README.md) · [实验 020：可复现的仿真轨迹数据集](../experiments/020_simulation_dataset/README.md) · [实验 021：动力学领域随机化与独立评估](../experiments/021_domain_randomization/README.md) · [实验 022：Sim-to-Sim 失配校准与迁移评价](../experiments/022_sim_to_sim_calibration/README.md) · [实验 023：向量环境性能基准](../experiments/023_vector_environment_benchmark/README.md)
 - 阶段总结：[阶段 4 完成小结](weekly/2026-09-05-stage4-complete.md)
 
-## 阶段 5 及以后的实验提示词
+## 论文精读与独立复现提示词
 
-- [实验提示词](../prompts/README.md)：当前 Codex 选择论文、复现范围、仿真配置、基线和验收条件；用户复制到另一个 Codex 任务中实施。
+- [论文学习提示词](../prompts/README.md)：推荐论文的精读和论文复现型仿真实验都在另一个 Codex 窗口进行；正常课程讲解与常规实验仍在本项目进行。
 
 ## 未来部署的设备快速入门资料
 
