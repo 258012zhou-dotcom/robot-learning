@@ -103,13 +103,13 @@
 - 综合验证：[实验 017：MuJoCo 最小物理步进](../experiments/017_mujoco_step/README.md) · [实验 018：Gymnasium 到达任务与控制基线](../experiments/018_gymnasium_rollout/README.md) · [实验 019：控制频率对闭环行为的影响](../experiments/019_control_frequency/README.md) · [实验 020：可复现的仿真轨迹数据集](../experiments/020_simulation_dataset/README.md) · [实验 021：动力学领域随机化与独立评估](../experiments/021_domain_randomization/README.md) · [实验 022：Sim-to-Sim 失配校准与迁移评价](../experiments/022_sim_to_sim_calibration/README.md) · [实验 023：向量环境性能基准](../experiments/023_vector_environment_benchmark/README.md)
 - 阶段总结：[阶段 4 完成小结](weekly/2026-09-05-stage4-complete.md)
 
-## 仿真实验与论文复现总结
+## 阶段 5 及以后的实验提示词
 
-- [仿真实验与论文复现总结](paper_reproductions/README.md)：当前学习中心，具体任务与平台待定；本仓库在外部项目完成后整理方法、仿真配置、基线评价与失败分析。
+- [实验提示词](../prompts/README.md)：当前 Codex 选择论文、复现范围、仿真配置、基线和验收条件；用户复制到另一个 Codex 任务中实施。
 
 ## 未来部署的设备快速入门资料
 
-- [具体设备资料](../hardware/README.md) · [PIPER](../hardware/piper/README.md)：快速了解设备连接、接口、已有工具与已知问题，减少以后部署的重复调试；当前不安排真机实验。
+- [具体设备资料](../hardware/README.md) · [PIPER](../hardware/piper/README.md)：未来部署时快速了解设备连接、接口与已知问题；当前不安排真机实验。
 
 ## 早期实验、总结与故障排查
 
