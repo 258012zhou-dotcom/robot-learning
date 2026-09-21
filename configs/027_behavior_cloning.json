@@ -1,0 +1,18 @@
+{
+  "experiment_name": "027_behavior_cloning",
+  "seed": 42,
+  "dataset_path": "outputs/020_simulation_dataset/dataset.npz",
+  "dataset_manifest_path": "outputs/020_simulation_dataset/manifest.json",
+  "environment_config_path": "configs/020_simulation_dataset.json",
+  "model_path": "experiments/017_mujoco_step/point_robot.xml",
+  "expert_policy_id": 1,
+  "hidden_size": 64,
+  "batch_size": 64,
+  "epochs": 100,
+  "learning_rate": 0.001,
+  "weight_decay": 0.00001,
+  "device": "cpu",
+  "evaluation_seed_start": 1000,
+  "evaluation_episode_count": 40,
+  "random_policy_seed": 27000
+}
