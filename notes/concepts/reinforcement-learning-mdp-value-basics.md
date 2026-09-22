@@ -146,7 +146,30 @@ A_risky = 0.6
 
 这说明少量样本不仅会带来数值误差，还可能让策略更新方向出错。增加样本通常能降低误差，但随机波动不保证误差随每一次扩充都严格单调下降。
 
-## 6. 当前已验证与尚未验证
+## 6. TD 与 Bootstrapping
+
+Monte Carlo 等待完整 Episode 后使用实际 Return。一步 TD 使用：
+
+```text
+TD target = r_t + γV(s_(t+1))
+TD error  = TD target - V(s_t)
+V(s_t) ← V(s_t) + α × TD error
+```
+
+其中 `α` 是学习率。使用下一状态的当前估计来更新当前状态，叫作 Bootstrapping。
+
+如果转移真正终止，未来价值为 0：
+
+```text
+TD target = r_t                  if terminated
+TD target = r_t + γV(s_(t+1))   otherwise
+```
+
+`truncated` 可能只是时间限制，不一定表示任务自然结束，是否继续 Bootstrapping 要根据任务定义处理。
+
+实验 032 的两状态链中，TD 先从终止奖励学到 `V(S1)`，再在后续 Episode 中把价值逐渐传播到 `V(S0)`。Monte Carlo 在这个确定性短链中收敛更快，因为完整 Return 没有随机方差；这不是一般优劣结论。
+
+## 7. 当前已验证与尚未验证
 
 已经实际验证：
 
@@ -155,20 +178,22 @@ A_risky = 0.6
 - `V = ΣπQ`、`A = Q - V` 和策略加权 Advantage 为 0。
 - Monte Carlo 状态价值和动作价值估计。
 - 少量随机样本可能误判 Advantage 的正负号。
+- 一步 TD target、TD Error、学习率更新和终止状态处理。
+- Bootstrapping 将下一状态估计逐步向前传播。
 
 尚未验证：
 
-- TD（Temporal Difference）与 Bootstrapping。
 - 使用神经网络拟合价值函数。
-- Policy Gradient、GAE 和 PPO。
+- Q-Learning、Policy Gradient、GAE 和 PPO。
 - 点机器人上的强化学习策略训练。
 
-## 7. 下一步
+## 8. 下一步
 
-下一知识节点是 TD 与 Bootstrapping：比较“等待完整 Episode 的真实 Return”和“使用一步奖励加下一状态估计值”的差异。在此基础上再进入 Policy Gradient 和 PPO。
+下一知识节点是 Q-Learning：把 TD target 从状态价值扩展到动作价值，并区分当前行为策略与目标中的贪心动作。在此基础上再进入 Policy Gradient 和 PPO。
 
 ## 项目入口
 
 - [实验 030：MDP 与折扣回报](../../experiments/030_mdp_return/README.md)
 - [实验 031：V、Q、Advantage 与 Monte Carlo 估计](../../experiments/031_value_estimation/README.md)
+- [实验 032：TD 与 Bootstrapping](../../experiments/032_td_bootstrapping/README.md)
 - [阶段路线](../../roadmap.md)

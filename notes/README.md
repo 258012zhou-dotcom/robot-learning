@@ -114,7 +114,7 @@
 - 专家示范、Behavior Cloning、离线与闭环评价、Covariate Shift、相关性捷径、输入消融和 DAgger 适用条件：[Behavior Cloning、分布偏移与输入消融](concepts/behavior-cloning-and-distribution-shift.md)
 - 综合验证：[实验 027：Behavior Cloning](../experiments/027_behavior_cloning/README.md) · [实验 028：受控扰动](../experiments/028_distribution_shift/README.md) · [实验 029：BC 输入消融](../experiments/029_bc_input_ablation/README.md)
 - MDP、马尔可夫性质、折扣回报、Policy、V、Q、Advantage 与 Monte Carlo：[强化学习：MDP、回报与价值函数基础](concepts/reinforcement-learning-mdp-value-basics.md)
-- 综合验证：[实验 030：MDP 与折扣回报](../experiments/030_mdp_return/README.md) · [实验 031：V、Q、Advantage 与 Monte Carlo](../experiments/031_value_estimation/README.md)
+- 综合验证：[实验 030：MDP 与折扣回报](../experiments/030_mdp_return/README.md) · [实验 031：V、Q、Advantage 与 Monte Carlo](../experiments/031_value_estimation/README.md) · [实验 032：TD 与 Bootstrapping](../experiments/032_td_bootstrapping/README.md)
 
 ## 未来部署的设备快速入门资料
 
