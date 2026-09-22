@@ -1,0 +1,19 @@
+{
+  "experiment_name": "031_value_estimation",
+  "seed": 31,
+  "discount_factor": 0.9,
+  "policy": {
+    "safe_probability": 0.75,
+    "risky_probability": 0.25
+  },
+  "safe": {
+    "immediate_reward": 1.0
+  },
+  "risky": {
+    "immediate_reward": 0.0,
+    "success_probability": 0.75,
+    "success_reward": 4.0,
+    "failure_reward": -4.0
+  },
+  "sample_counts": [10, 100, 1000, 10000]
+}

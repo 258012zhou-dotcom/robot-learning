@@ -12,6 +12,7 @@
 | 模型训练好了，换进程却不能用 | [训练与评价](concepts/pytorch-training-workflow.md) · [预训练与微调](concepts/pretraining-and-finetuning.md) · [LoRA](concepts/parameter-efficient-finetuning.md) |
 | 准备学策略训练 | [环境接口](concepts/gymnasium-environment-and-rollout.md) · [轨迹数据](concepts/simulation-trajectory-data-collection.md) · [当前路线](../roadmap.md) |
 | BC 的 MSE 很小，闭环就一定好吗 | [Behavior Cloning、分布偏移与输入消融](concepts/behavior-cloning-and-distribution-shift.md) |
+| Reward、Return、V、Q 和 Advantage 是什么 | [强化学习：MDP、回报与价值函数基础](concepts/reinforcement-learning-mdp-value-basics.md) |
 
 公式默认用可直接阅读的文本：`@` 是矩阵乘法，`×` 是乘法，`abs(x)` 是绝对值，`Σ` 表示求和，`dt` 是时间间隔。每篇会解释本地变量含义；代码里的反斜杠可能是命令换行符，不应该一概删除。复杂数学如使用 `$...$`，需在 Markdown **预览**中阅读，而不是把源码转义符当公式。
 
@@ -112,6 +113,8 @@
 
 - 专家示范、Behavior Cloning、离线与闭环评价、Covariate Shift、相关性捷径、输入消融和 DAgger 适用条件：[Behavior Cloning、分布偏移与输入消融](concepts/behavior-cloning-and-distribution-shift.md)
 - 综合验证：[实验 027：Behavior Cloning](../experiments/027_behavior_cloning/README.md) · [实验 028：受控扰动](../experiments/028_distribution_shift/README.md) · [实验 029：BC 输入消融](../experiments/029_bc_input_ablation/README.md)
+- MDP、马尔可夫性质、折扣回报、Policy、V、Q、Advantage 与 Monte Carlo：[强化学习：MDP、回报与价值函数基础](concepts/reinforcement-learning-mdp-value-basics.md)
+- 综合验证：[实验 030：MDP 与折扣回报](../experiments/030_mdp_return/README.md) · [实验 031：V、Q、Advantage 与 Monte Carlo](../experiments/031_value_estimation/README.md)
 
 ## 未来部署的设备快速入门资料
 
