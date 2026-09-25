@@ -1,0 +1,9 @@
+{
+  "experiment_name": "036_ppo_clipping",
+  "reward_low": 1.0,
+  "reward_high": 2.0,
+  "learning_rate": 1.0,
+  "clip_epsilon": 0.2,
+  "training_steps": 40,
+  "record_steps": [0, 1, 2, 5, 10, 40]
+}

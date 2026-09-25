@@ -1,0 +1,6 @@
+{
+  "experiment_name": "038_ppo_velocity_reward",
+  "base_config": "configs/037_ppo_point_robot.json",
+  "near_target_radius": 0.5,
+  "velocity_penalty_weight": 0.5
+}

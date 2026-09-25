@@ -1,0 +1,9 @@
+{
+  "experiment_name": "033_tabular_q_learning",
+  "seed": 33,
+  "episode_count": 1000,
+  "learning_rate": 0.2,
+  "discount_factor": 0.9,
+  "exploration_rates": [0.0, 0.2],
+  "evaluation_episodes": 20
+}
