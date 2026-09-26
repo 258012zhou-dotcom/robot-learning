@@ -1,0 +1,7 @@
+{
+  "experiment_name": "039_ppo_multiseed",
+  "base_config": "configs/037_ppo_point_robot.json",
+  "training_seeds": [37, 197, 357],
+  "analysis_seeds": [100037, 100038, 100043],
+  "sampling_seeds": [1, 2, 3, 4, 5]
+}

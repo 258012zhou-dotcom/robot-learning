@@ -20,7 +20,7 @@
 ## 项目结构
 
 - `notes/`：概念、课程笔记和故障排查记录
-- `experiments/`：独立的小型学习实验（当前保留 001–023、027–038；024–026 为历史真机编号，不复用）
+- `experiments/`：独立的小型学习实验（当前保留 001–023、027–039；024–026 为历史真机编号，不复用）
 - `hardware/`：按设备分类的未来部署速查总结
 - `prompts/`：推荐到另一个 Codex 窗口开展的论文精读与独立复现提示词
 - `projects/`：较完整的阶段项目
@@ -86,7 +86,7 @@ PIPER 历史检查结论已压缩成一份 [未来部署速查](hardware/piper/R
 - 实验 022：构造隐藏动作增益、控制延迟和位置偏置，用一次阶跃校准估计参数，并在新目标上比较直接迁移、估计补偿和 oracle。
 - 实验 023：固定逐环境 seed、动作和步数，比较串行环境池、SyncVectorEnv 和 AsyncVectorEnv；用顺序敏感哈希检查数值一致性。
 - 实验 027–029：Behavior Cloning、受控分布偏移与输入消融。
-- 实验 030–038：强化学习基础、PPO 最小闭环与近目标速度奖励对照；详细结果和局限见[阶段 5C 小结](notes/weekly/2026-09-25-stage5c-ppo-checkpoint.md)。
+- 实验 030–039：强化学习基础、PPO 最小闭环、奖励对照与[多训练种子复验](experiments/039_ppo_multiseed/README.md)；第一轮背景见[阶段 5C 小结](notes/weekly/2026-09-25-stage5c-ppo-checkpoint.md)。
 - `projects/cpp_point_robot`：验证 C++17 点机器人函数、CMake 构建和 CTest。
 - `projects/python_concurrency_demo`：验证多进程与 `asyncio` 的基本运行边界。
 - `projects/tcp_sensor_demo`：验证本机 TCP 上的 JSON 位置样本与确认消息。

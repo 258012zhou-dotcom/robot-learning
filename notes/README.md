@@ -116,7 +116,7 @@
 - MDP、马尔可夫性质、折扣回报、Policy、V、Q、Advantage 与 Monte Carlo：[强化学习：MDP、回报与价值函数基础](concepts/reinforcement-learning-mdp-value-basics.md)
 - 综合验证：[实验 030：MDP 与折扣回报](../experiments/030_mdp_return/README.md) · [实验 031：V、Q、Advantage 与 Monte Carlo](../experiments/031_value_estimation/README.md) · [实验 032：TD 与 Bootstrapping](../experiments/032_td_bootstrapping/README.md) · [实验 033：表格型 Q-Learning](../experiments/033_tabular_q_learning/README.md) · [实验 034：策略梯度](../experiments/034_policy_gradient/README.md) · [实验 035：Actor-Critic](../experiments/035_actor_critic/README.md) · [实验 036：PPO 裁剪目标](../experiments/036_ppo_clipping/README.md) · [实验 037：点机器人 PPO 最小闭环](../experiments/037_ppo_point_robot/README.md) · [实验 038：近目标速度奖励对照](../experiments/038_ppo_velocity_reward/README.md)
 
-- 阶段检查点：[阶段 5C 强化学习与 PPO 第一轮小结](weekly/2026-09-25-stage5c-ppo-checkpoint.md)
+- 阶段检查点：[阶段 5C 强化学习与 PPO 第一轮小结](weekly/2026-09-25-stage5c-ppo-checkpoint.md) · [实验 039：PPO 多训练种子闭环复验](../experiments/039_ppo_multiseed/README.md)
 
 ## 未来部署的设备快速入门资料
 
