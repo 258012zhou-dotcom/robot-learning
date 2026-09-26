@@ -13,6 +13,7 @@
 | 准备学策略训练 | [环境接口](concepts/gymnasium-environment-and-rollout.md) · [轨迹数据](concepts/simulation-trajectory-data-collection.md) · [当前路线](../roadmap.md) |
 | BC 的 MSE 很小，闭环就一定好吗 | [Behavior Cloning、分布偏移与输入消融](concepts/behavior-cloning-and-distribution-shift.md) |
 | Reward、Return、V、Q 和 Advantage 是什么 | [强化学习：MDP、回报与价值函数基础](concepts/reinforcement-learning-mdp-value-basics.md) |
+| SAC 的经验回放、离策略和评价时限如何理解 | [SAC：经验回放、连续动作与闭环评价](concepts/sac-replay-and-evaluation.md) |
 
 公式默认用可直接阅读的文本：`@` 是矩阵乘法，`×` 是乘法，`abs(x)` 是绝对值，`Σ` 表示求和，`dt` 是时间间隔。每篇会解释本地变量含义；代码里的反斜杠可能是命令换行符，不应该一概删除。复杂数学如使用 `$...$`，需在 Markdown **预览**中阅读，而不是把源码转义符当公式。
 
@@ -117,6 +118,7 @@
 - 综合验证：[实验 030：MDP 与折扣回报](../experiments/030_mdp_return/README.md) · [实验 031：V、Q、Advantage 与 Monte Carlo](../experiments/031_value_estimation/README.md) · [实验 032：TD 与 Bootstrapping](../experiments/032_td_bootstrapping/README.md) · [实验 033：表格型 Q-Learning](../experiments/033_tabular_q_learning/README.md) · [实验 034：策略梯度](../experiments/034_policy_gradient/README.md) · [实验 035：Actor-Critic](../experiments/035_actor_critic/README.md) · [实验 036：PPO 裁剪目标](../experiments/036_ppo_clipping/README.md) · [实验 037：点机器人 PPO 最小闭环](../experiments/037_ppo_point_robot/README.md) · [实验 038：近目标速度奖励对照](../experiments/038_ppo_velocity_reward/README.md)
 
 - 阶段检查点：[阶段 5C 强化学习与 PPO 第一轮小结](weekly/2026-09-25-stage5c-ppo-checkpoint.md) · [实验 039：PPO 多训练种子闭环复验](../experiments/039_ppo_multiseed/README.md)
+- SAC 第一轮：[概念与评价边界](concepts/sac-replay-and-evaluation.md) · [实验 040：初始闭环评价](../experiments/040_sac_initial_evaluation/README.md) · [实验 041：方向覆盖与多种子诊断](../experiments/041_sac_direction_coverage/README.md)
 
 ## 未来部署的设备快速入门资料
 

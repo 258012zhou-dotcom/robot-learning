@@ -1,0 +1,22 @@
+{
+  "experiment_name": "040_sac_initial_evaluation",
+  "training_seed": 26,
+  "evaluation_seed": 100026,
+  "evaluation_episode_count": 20,
+  "training_steps": 240,
+  "random_steps": 64,
+  "replay_capacity": 1000,
+  "batch_size": 64,
+  "learning_rate": 0.001,
+  "gamma": 0.99,
+  "alpha": 0.2,
+  "tau": 0.005,
+  "frame_skip": 5,
+  "max_episode_steps": 200,
+  "minimum_target_distance": 0.5,
+  "maximum_target_distance": 2.0,
+  "success_tolerance": 0.05,
+  "velocity_tolerance": 0.1,
+  "action_penalty_weight": 0.01,
+  "proportional_gain": 0.5
+}

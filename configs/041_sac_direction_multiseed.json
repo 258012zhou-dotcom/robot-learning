@@ -1,0 +1,6 @@
+{
+  "base_config": "configs/041_sac_direction_coverage.json",
+  "training_seeds": [26, 126, 226],
+  "evaluation_seed": 300026,
+  "evaluation_episode_count": 20
+}
