@@ -1,0 +1,8 @@
+{
+  "experiment_name": "042_offline_q_extrapolation",
+  "discount_factor": 0.9,
+  "learning_rate": 1.0,
+  "observed_terminal_reward": 1.0,
+  "unobserved_initial_q": 5.0,
+  "hypothetical_unobserved_rewards": [0.0, 10.0]
+}

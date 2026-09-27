@@ -1,0 +1,8 @@
+{
+  "experiment_name": "043_offline_data_coverage",
+  "discount_factor": 0.9,
+  "learning_rate": 1.0,
+  "observed_terminal_reward": 1.0,
+  "unseen_action_initial_q": 5.0,
+  "covered_unseen_action_rewards": [0.0, 10.0]
+}
