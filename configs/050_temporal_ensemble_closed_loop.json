@@ -1,0 +1,13 @@
+{
+  "experiment_name": "050_temporal_ensemble_closed_loop",
+  "sequence_checkpoint_path": "outputs/046_sequence_bc_baseline/best_model.pt",
+  "dataset_path": "outputs/020_simulation_dataset/dataset.npz",
+  "dataset_manifest_path": "outputs/020_simulation_dataset/manifest.json",
+  "previous_closed_loop_path": "outputs/046_sequence_bc_baseline/closed_loop_results.json",
+  "environment_config_path": "configs/020_simulation_dataset.json",
+  "model_path": "experiments/017_mujoco_step/point_robot.xml",
+  "evaluation_seed_start": 1000,
+  "evaluation_episode_count": 40,
+  "temporal_decay": 0.6931471805599453,
+  "device": "cpu"
+}

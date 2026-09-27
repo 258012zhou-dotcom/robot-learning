@@ -1,0 +1,14 @@
+{
+  "experiment_name": "052_act_action_delay_boundary",
+  "act_checkpoint_path": "outputs/047_act_lowdim_mechanics/best_model.pt",
+  "dataset_path": "outputs/020_simulation_dataset/dataset.npz",
+  "dataset_manifest_path": "outputs/020_simulation_dataset/manifest.json",
+  "reference_closed_loop_path": "outputs/051_act_lowdim_closed_loop/closed_loop_results.json",
+  "environment_config_path": "configs/020_simulation_dataset.json",
+  "model_path": "experiments/017_mujoco_step/point_robot.xml",
+  "evaluation_seed_start": 1000,
+  "evaluation_episode_count": 40,
+  "action_delay_steps": [0, 3, 10],
+  "temporal_decay": 0.6931471805599453,
+  "device": "cpu"
+}

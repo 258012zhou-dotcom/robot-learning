@@ -1,0 +1,12 @@
+{
+  "experiment_name": "048_bimodal_act_probe",
+  "seed": 42,
+  "horizon": 4,
+  "action_magnitude": 0.8,
+  "hidden_size": 16,
+  "latent_size": 2,
+  "attention_heads": 2,
+  "training_steps": 500,
+  "learning_rate": 0.001,
+  "kl_weight": 0.001
+}

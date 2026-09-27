@@ -1,0 +1,5 @@
+{
+  "experiment_name": "044_action_chunk_alignment",
+  "source_dataset": "outputs/020_simulation_dataset/dataset.npz",
+  "action_horizon": 4
+}

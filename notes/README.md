@@ -15,6 +15,7 @@
 | Reward、Return、V、Q 和 Advantage 是什么 | [强化学习：MDP、回报与价值函数基础](concepts/reinforcement-learning-mdp-value-basics.md) |
 | SAC 的经验回放、离策略和评价时限如何理解 | [SAC：经验回放、连续动作与闭环评价](concepts/sac-replay-and-evaluation.md) |
 | 固定数据的 BC、离线 RL 和在线 SAC 有什么区别 | [离线强化学习：数据支持与基线](concepts/offline-rl-data-support-and-baselines.md) |
+| ACT 的动作片段、潜变量和时间集成学到了什么 | [ACT 第一轮：动作片段、潜变量与闭环证据](concepts/act-action-chunking-and-evaluation.md) |
 
 公式默认用可直接阅读的文本：`@` 是矩阵乘法，`×` 是乘法，`abs(x)` 是绝对值，`Σ` 表示求和，`dt` 是时间间隔。每篇会解释本地变量含义；代码里的反斜杠可能是命令换行符，不应该一概删除。复杂数学如使用 `$...$`，需在 Markdown **预览**中阅读，而不是把源码转义符当公式。
 
@@ -121,6 +122,7 @@
 - 阶段检查点：[阶段 5C 强化学习与 PPO 第一轮小结](weekly/2026-09-25-stage5c-ppo-checkpoint.md) · [实验 039：PPO 多训练种子闭环复验](../experiments/039_ppo_multiseed/README.md)
 - SAC 第一轮：[概念与评价边界](concepts/sac-replay-and-evaluation.md) · [实验 040：初始闭环评价](../experiments/040_sac_initial_evaluation/README.md) · [实验 041：方向覆盖与多种子诊断](../experiments/041_sac_direction_coverage/README.md)
 - Offline RL 基础：[固定数据、动作覆盖与基线](concepts/offline-rl-data-support-and-baselines.md) · [实验 042：未见动作的 Q 值外推](../experiments/042_offline_q_extrapolation/README.md) · [实验 043：预收集数据覆盖对照](../experiments/043_offline_data_coverage/README.md)
+- ACT 第一轮：[动作片段、潜变量与闭环证据](concepts/act-action-chunking-and-evaluation.md) · [实验 044：片段边界](../experiments/044_action_chunk_alignment/README.md) · [实验 052：延迟边界](../experiments/052_act_action_delay_boundary/README.md)；其余实验链接见概念笔记。
 
 ## 未来部署的设备快速入门资料
 

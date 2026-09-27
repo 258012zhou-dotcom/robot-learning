@@ -1,0 +1,17 @@
+{
+  "experiment_name": "047_act_lowdim_mechanics",
+  "seed": 42,
+  "dataset_path": "outputs/020_simulation_dataset/dataset.npz",
+  "dataset_manifest_path": "outputs/020_simulation_dataset/manifest.json",
+  "expert_policy_id": 1,
+  "horizon": 4,
+  "hidden_size": 32,
+  "latent_size": 8,
+  "attention_heads": 4,
+  "batch_size": 128,
+  "epochs": 20,
+  "learning_rate": 0.001,
+  "weight_decay": 0.00001,
+  "kl_weight": 0.01,
+  "device": "cpu"
+}
