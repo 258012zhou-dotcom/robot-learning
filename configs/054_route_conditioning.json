@@ -1,0 +1,8 @@
+{
+  "experiment_name": "054_route_conditioning",
+  "source_dataset_path": "outputs/053_diffusion_two_route_foundation/dataset.npz",
+  "source_manifest_path": "outputs/053_diffusion_two_route_foundation/results.json",
+  "source_task_config_path": "configs/053_diffusion_two_route_foundation.json",
+  "baseline_bc_config_path": "configs/053_diffusion_two_route_bc.json",
+  "baseline_checkpoint_path": "outputs/053_diffusion_two_route_foundation/bc_best_model.pt"
+}

@@ -72,6 +72,17 @@ def test_replan_each_step_uses_new_first_action() -> None:
     assert model.query_count == 3
 
 
+def test_hold_chunk_replans_after_fixed_execution_horizon() -> None:
+    model = CountingChunkModel()
+    norm = ObservationNormalization(np.zeros(1), np.ones(1))
+    policy = SequenceBCPolicy(model, norm, mode="hold_chunk", execution_horizon=2)
+    outputs = [float(policy(np.array([step]))[0]) for step in range(4)]
+    assert outputs == [10.0, 11.0, 20.0, 21.0]
+    assert model.query_count == 2
+    with pytest.raises(ValueError, match="execution_horizon"):
+        SequenceBCPolicy(model, norm, mode="hold_chunk", execution_horizon=4)
+
+
 def test_temporal_policy_aligns_predictions_for_each_absolute_step() -> None:
     model = CountingChunkModel()
     norm = ObservationNormalization(np.zeros(1), np.ones(1))
@@ -118,3 +129,28 @@ def test_sequence_data_uses_expert_episodes_and_train_only_normalization() -> No
     np.testing.assert_array_equal(prepared.validation.episode_ids, [1])
     np.testing.assert_array_equal(prepared.test.episode_ids, [2])
     np.testing.assert_array_equal(prepared.train.valid_mask, [[True, False]])
+
+
+def test_sequence_data_keeps_both_routes_without_validation_leakage() -> None:
+    def episode(value: float) -> EpisodeResult:
+        return EpisodeResult(
+            observations=np.array([[value], [value + 1]], dtype=np.float32),
+            actions=np.array([[0.0]], dtype=np.float32),
+            rewards=np.zeros(1), total_reward=0.0, terminated=True,
+            truncated=False, is_success=True,
+        )
+
+    collected = [
+        CollectedEpisode(index, 10 + index // 2, index % 2,
+                         [TRAIN_SPLIT_ID, VALIDATION_SPLIT_ID, TEST_SPLIT_ID][index // 2],
+                         episode([2.0, 4.0, 100.0, 120.0, 200.0, 220.0][index]))
+        for index in range(6)
+    ]
+    dataset = build_transition_dataset(collected)
+    prepared = prepare_sequence_data(dataset, horizon=2, expert_policy_ids=[0, 1])
+    np.testing.assert_array_equal(prepared.normalization.mean, [3.0])
+    np.testing.assert_array_equal(prepared.train.episode_ids, [0, 1])
+    np.testing.assert_array_equal(prepared.validation.episode_ids, [2, 3])
+    np.testing.assert_array_equal(prepared.test.episode_ids, [4, 5])
+    with pytest.raises(ValueError, match="missing"):
+        prepare_sequence_data(dataset, horizon=2, expert_policy_ids=[0, 2])

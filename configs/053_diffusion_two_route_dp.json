@@ -1,0 +1,15 @@
+{
+  "experiment_name": "053_diffusion_two_route_dp_pilot",
+  "seed": 42,
+  "prediction_horizon": 8,
+  "execution_horizon": 4,
+  "diffusion_steps": 32,
+  "hidden_size": 128,
+  "batch_size": 256,
+  "epochs": 80,
+  "learning_rate": 0.001,
+  "weight_decay": 0.00001,
+  "evaluation_draws_per_scene": 4,
+  "initial_chunk_sample_count": 64,
+  "repeat_train_seeds": [42, 123, 777]
+}

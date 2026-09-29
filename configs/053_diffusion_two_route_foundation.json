@@ -1,0 +1,12 @@
+{
+  "experiment_name": "053_diffusion_two_route_foundation",
+  "dt": 0.1,
+  "max_episode_steps": 80,
+  "goal_tolerance": 0.08,
+  "expert_speed": 0.8,
+  "scene_splits": {
+    "train": {"seed_start": 0, "scene_count": 200},
+    "validation": {"seed_start": 10000, "scene_count": 40},
+    "test": {"seed_start": 20000, "scene_count": 40}
+  }
+}

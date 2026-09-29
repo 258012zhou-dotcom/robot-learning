@@ -40,17 +40,30 @@ class SequenceData:
 
 
 def prepare_sequence_data(
-    dataset: TransitionDataset, *, horizon: int, expert_policy_id: int
+    dataset: TransitionDataset,
+    *,
+    horizon: int,
+    expert_policy_id: int | None = None,
+    expert_policy_ids: Sequence[int] | None = None,
 ) -> SequenceData:
     """Use expert-only complete Episodes and train-only observation statistics."""
+    if (expert_policy_id is None) == (expert_policy_ids is None):
+        raise ValueError("specify exactly one expert policy selection")
+    selected_ids = (
+        (expert_policy_id,) if expert_policy_ids is None else tuple(expert_policy_ids)
+    )
+    if not selected_ids or len(selected_ids) != len(set(selected_ids)):
+        raise ValueError("expert policy ids must be nonempty and distinct")
     chunks = build_action_chunks(dataset, horizon=horizon)
     raw: dict[int, SequenceSplit] = {}
     for split_id in (TRAIN_SPLIT_ID, VALIDATION_SPLIT_ID, TEST_SPLIT_ID):
-        selected = (dataset.policy_ids == expert_policy_id) & (
+        selected = np.isin(dataset.policy_ids, selected_ids) & (
             dataset.split_ids == split_id
         )
         if not np.any(selected):
             raise ValueError(f"no expert rows for split {split_id}")
+        if set(dataset.policy_ids[selected].tolist()) != set(selected_ids):
+            raise ValueError(f"some expert policies are missing from split {split_id}")
         raw[split_id] = SequenceSplit(
             observations=chunks.observations[selected].copy(),
             action_chunks=chunks.action_chunks[selected].copy(),
@@ -149,7 +162,7 @@ def masked_chunk_mse(
 
 
 class SequenceBCPolicy:
-    """Execute a whole predicted chunk or replan from each new observation."""
+    """Execute a fixed chunk prefix or replan from each new observation."""
 
     def __init__(
         self,
@@ -157,13 +170,20 @@ class SequenceBCPolicy:
         normalization: ObservationNormalization,
         *,
         mode: Literal["hold_chunk", "replan_each_step"],
+        execution_horizon: int | None = None,
         device: str | torch.device = "cpu",
     ) -> None:
         if mode not in ("hold_chunk", "replan_each_step"):
             raise ValueError("unknown execution mode")
+        if execution_horizon is not None and (
+            type(execution_horizon) is not int
+            or not 1 <= execution_horizon <= model.horizon
+        ):
+            raise ValueError("execution_horizon must be within prediction horizon")
         self.model = model.to(device).eval()
         self.normalization = normalization
         self.mode = mode
+        self.execution_horizon = execution_horizon or model.horizon
         self.device = torch.device(device)
         self.reset()
 
@@ -174,7 +194,7 @@ class SequenceBCPolicy:
 
     def __call__(self, observation: np.ndarray) -> np.ndarray:
         if self.mode == "replan_each_step" or self._chunk is None or (
-            self._cursor >= self.model.horizon
+            self._cursor >= self.execution_horizon
         ):
             value = np.asarray(observation, dtype=np.float32)
             if value.ndim != 1:

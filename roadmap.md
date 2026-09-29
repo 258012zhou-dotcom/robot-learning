@@ -192,7 +192,7 @@
 
 ## 阶段 5：模仿学习与强化学习
 
-**状态：阶段 5A–5B 第一轮已完成；5C 已完成 RL 基础、PPO 与 SAC 的教学规模实现和有边界评价，以及 Offline RL 的固定数据机制入门；5D 的 ACT 第一轮机制学习与受限闭环验证已[总结](notes/concepts/act-action-chunking-and-evaluation.md)。完整 ACT 论文复现、复杂任务与系统鲁棒性评价未完成。稳定闭环策略与完整离线 RL 算法均未完成。** PIPER 只保留 [未来部署速查](hardware/piper/README.md)，历史实验文件已删除，026 未完成且不记为完成；历史编号不复用。实验 037–039 的 PPO 及 040–041 的 SAC 负结果都保留；具体结论只适用于各自的仿真任务、训练预算和评价协议，不外推算法一般性能。
+**状态：阶段 5A–5B 第一轮已完成；5C 已完成 RL 基础、PPO 与 SAC 的教学规模实现和有边界评价，以及 Offline RL 的固定数据机制入门；5D 的 ACT 与 Diffusion Policy 第一轮机制学习和受限闭环验证分别已[总结](notes/concepts/act-action-chunking-and-evaluation.md)、[总结](notes/concepts/diffusion-policy-action-generation-and-evaluation.md)。完整论文复现、复杂任务与系统鲁棒性评价未完成。稳定闭环策略与完整离线 RL 算法均未完成。** PIPER 只保留 [未来部署速查](hardware/piper/README.md)，历史实验文件已删除，026 未完成且不记为完成；历史编号不复用。实验 037–039 的 PPO 及 040–041 的 SAC 负结果都保留；具体结论只适用于各自的仿真任务、训练预算和评价协议，不外推算法一般性能。
 
 执行顺序为 **BC → 闭环失败分析与 DAgger 适用性判断 → RL 基础、PPO 与 SAC → Offline RL 基础 → 真实来源数据与序列策略**。当前已经有仿真专家轨迹、训练循环和环境接口。正常讲解与实验都在当前项目完成；推荐论文的精读和独立论文复现型仿真实验通过 [外部窗口提示词](prompts/README.md) 进行。
 
@@ -201,7 +201,9 @@
 | 5A 行为克隆 | 示范、观测/动作定义、监督损失、归一化、轨迹划分 | 实验 027：用已有控制器采集专家数据，训练 BC；加载后与专家及随机策略做闭环对照 |
 | 5B 分布偏移 | Covariate Shift、误差累积、恢复状态、DAgger 适用条件 | 实验 028–029：受控动作覆盖、固定变量扫描与输入消融；有必要时再做数据聚合 |
 | 5C 强化学习 | MDP、回报、V/Q、Advantage、TD、Q-Learning、策略梯度、PPO、SAC 与 Offline RL 基础 | 实验 030–036 验证基础机制；037–039 为 PPO 第一轮；[040](experiments/040_sac_initial_evaluation/README.md)–[041](experiments/041_sac_direction_coverage/README.md) 为 SAC 第一轮；[042](experiments/042_offline_q_extrapolation/README.md)–[043](experiments/043_offline_data_coverage/README.md) 仅验证固定数据机制 |
-| 5D 真实数据与序列策略 | 时间对齐、动作单位、ACT 与 Diffusion Policy | [044](experiments/044_action_chunk_alignment/README.md) 验证仿真片段与掩码；[045](experiments/045_aloha_dataset_audit/README.md) 审计公开 ALOHA 数据来源；[046](experiments/046_sequence_bc_baseline/README.md) 建立非 ACT 的序列 BC 基线；[047](experiments/047_act_lowdim_mechanics/README.md)–[048](experiments/048_bimodal_act_probe/README.md) 验证低维 ACT 潜变量；[049](experiments/049_temporal_ensemble_alignment/README.md) 核对时间集成规则；[050](experiments/050_temporal_ensemble_closed_loop/README.md) 在非 ACT 模型上对照执行方式；[051](experiments/051_act_lowdim_closed_loop/README.md) 完成低维 ACT 同分布仿真闭环；[052](experiments/052_act_action_delay_boundary/README.md) 做动作延迟边界检查。未做完整论文复现或系统鲁棒性评价 |
+| 5D 真实数据与序列策略 | 时间对齐、动作单位、ACT 与 Diffusion Policy | [044](experiments/044_action_chunk_alignment/README.md)–[052](experiments/052_act_action_delay_boundary/README.md) 完成数据协议、非 ACT 片段 BC、低维 ACT 与执行边界；[053](experiments/053_diffusion_two_route_foundation/README.md) 在二维双路线仿真中比较确定性片段 BC 与低维扩散策略，并做三训练种子及失败轨迹复验。未做完整论文复现或系统鲁棒性评价 |
+
+Diffusion Policy 的**第一轮教学实验到此收束**：已分开检查去噪损失、生成片段与闭环任务，保留三训练种子及碰撞/超时负结果；不再在同一二维任务上反复调参，也不把它记作完整论文复现。后续依次补讲下方仍未完成的奖励设计与训练稳定性、跨策略的评价和失败分析、数据质量/任务标注/动作表示。[054](experiments/054_route_conditioning/README.md) 与 [055](experiments/055_velocity_unit_boundary/README.md) 只为第三项提供局部实例，不等于该项已完成。真实机器人策略评估先讲评价原则；实际真机验证按当前仿真优先的范围后置，保持未完成，不能凭仿真结果勾选。
 
 5B 论文入口：[DAgger 原论文精读提示词](prompts/paper_reading/05b_dagger.md)。精读在另一个 Codex 窗口进行。当前已完成 DAgger 原理与适用条件的第一轮学习；代码实现不是必修项，只有以后出现“专家能纠正、BC 因状态覆盖不足而失败”的证据时再开展。
 
@@ -230,7 +232,7 @@ PPO 多训练种子闭环评价、固定失败轨迹诊断和只改变评价动�
 - [x] Covariate Shift
 - [x] DAgger 原理与适用条件（代码实现按需）
 - [x] ACT 第一轮机制与一维仿真闭环（非完整论文复现，未认定独立掌握）
-- [ ] Diffusion Policy
+- [x] Diffusion Policy 第一轮机制与二维教学仿真闭环（含多种子和失败分析；非完整论文复现，未认定独立掌握）
 - [ ] 数据质量、任务标注和动作表示
 - [ ] 真实机器人策略评估
 
@@ -243,6 +245,8 @@ PPO 多训练种子闭环评价、固定失败轨迹诊断和只改变评价动�
 LeRobot 可作为数据与训练工作流的候选工具，不要求现在安装或绑定某一硬件。具体版本、数据规模和显存预算在选定任务后核对。
 
 进入阶段 6 的最低交付：一个能独立加载的策略、明确的数据/动作契约、至少一种闭环基线对照、按失败类型整理的报告。离线 loss 下降不能单独算作机器人任务完成。
+
+2026-09-29 [核对记录](notes/weekly/2026-09-29-stage5-minimum-evidence-checkpoint.md)：实验 053 在**教学仿真范围内**具备上述四项最低交付，可开始阶段 6 的基础学习；阶段 5 的未勾选项仍保留，不把公开真机数据、稳定策略、公平算法排名或真机评价记为完成。
 
 ---
 
